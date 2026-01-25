@@ -2,12 +2,12 @@
 
 #include <gtest/gtest.h>
 
-class HeapLinearAllocatorTest : public ::testing::Test {
+class LinearAllocatorTest : public ::testing::Test {
  protected:
-  HeapLinearAllocator allocator{1024};
+  LinearAllocator allocator{1024};
 };
 
-TEST_F(HeapLinearAllocatorTest, BasicAllocation) {
+TEST_F(LinearAllocatorTest, BasicAllocation) {
   auto* ptr{allocator.allocate(100, 8)};
   ASSERT_NE(ptr, nullptr);
 
@@ -17,7 +17,7 @@ TEST_F(HeapLinearAllocatorTest, BasicAllocation) {
   EXPECT_NE(ptr, second_ptr);
 }
 
-TEST_F(HeapLinearAllocatorTest, AlignsCorrectly) {
+TEST_F(LinearAllocatorTest, AlignsCorrectly) {
   auto* ptr1{allocator.allocate(13, 1)};
   auto* ptr2{allocator.allocate(50, 8)};
   auto* ptr3{allocator.allocate(100, 16)};
@@ -31,7 +31,7 @@ TEST_F(HeapLinearAllocatorTest, AlignsCorrectly) {
   EXPECT_EQ(reinterpret_cast<uintptr_t>(ptr3) % 16, 0);
 }
 
-TEST_F(HeapLinearAllocatorTest, AlignmentsPadsToCreateGaps) {
+TEST_F(LinearAllocatorTest, AlignmentsPadsToCreateGaps) {
   auto* ptr1{allocator.allocate(13, 1)};
   auto* ptr2{allocator.allocate(50, 8)};
 
@@ -43,12 +43,12 @@ TEST_F(HeapLinearAllocatorTest, AlignmentsPadsToCreateGaps) {
   EXPECT_EQ(gap, 16);
 }
 
-TEST_F(HeapLinearAllocatorTest, ReturnsNullptrWhenOutOfMemory) {
+TEST_F(LinearAllocatorTest, ReturnsNullptrWhenOutOfMemory) {
   auto* ptr{allocator.allocate(2000, 8)};
   EXPECT_EQ(ptr, nullptr);
 }
 
-TEST_F(HeapLinearAllocatorTest, ResetsSuccessfully) {
+TEST_F(LinearAllocatorTest, ResetsSuccessfully) {
   auto* ptr1{allocator.allocate(500, 8)};
   ASSERT_NE(ptr1, nullptr);
 
@@ -60,7 +60,7 @@ TEST_F(HeapLinearAllocatorTest, ResetsSuccessfully) {
   EXPECT_EQ(ptr1, ptr2);
 }
 
-TEST_F(HeapLinearAllocatorTest, DeallocateIsNotSupported) {
+TEST_F(LinearAllocatorTest, DeallocateIsNotSupported) {
   auto* ptr1{allocator.allocate(100, 8)};
   ASSERT_NE(ptr1, nullptr);
 
@@ -73,7 +73,7 @@ TEST_F(HeapLinearAllocatorTest, DeallocateIsNotSupported) {
             reinterpret_cast<uintptr_t>(ptr1));
 }
 
-TEST_F(HeapLinearAllocatorTest, ResizeAllocationInPlaceGrows) {
+TEST_F(LinearAllocatorTest, ResizeAllocationInPlaceGrows) {
   auto* ptr1{allocator.allocate(100, 8)};
   auto* ptr2{allocator.allocate(50, 8)};
 
@@ -86,7 +86,7 @@ TEST_F(HeapLinearAllocatorTest, ResizeAllocationInPlaceGrows) {
   EXPECT_EQ(resized, ptr2);
 }
 
-TEST_F(HeapLinearAllocatorTest, ResizeAllocationInPlaceShrinks) {
+TEST_F(LinearAllocatorTest, ResizeAllocationInPlaceShrinks) {
   auto* ptr{allocator.allocate(100, 8)};
   ASSERT_NE(ptr, nullptr);
 
@@ -97,7 +97,7 @@ TEST_F(HeapLinearAllocatorTest, ResizeAllocationInPlaceShrinks) {
   EXPECT_EQ(resized, ptr);
 }
 
-TEST_F(HeapLinearAllocatorTest, ResizeAllocationReturnsNullptrIfTooLarge) {
+TEST_F(LinearAllocatorTest, ResizeAllocationReturnsNullptrIfTooLarge) {
   auto* ptr{allocator.allocate(100, 8)};
   ASSERT_NE(ptr, nullptr);
 
@@ -105,20 +105,20 @@ TEST_F(HeapLinearAllocatorTest, ResizeAllocationReturnsNullptrIfTooLarge) {
   EXPECT_EQ(resized, nullptr);
 }
 
-TEST_F(HeapLinearAllocatorTest, ResizeAllocationOnNullptrAllocatesNew) {
+TEST_F(LinearAllocatorTest, ResizeAllocationOnNullptrAllocatesNew) {
   auto* ptr{allocator.resize_allocation(nullptr, 0, 100, 8)};
   ASSERT_NE(ptr, nullptr);
   EXPECT_EQ(reinterpret_cast<uintptr_t>(ptr) % 8, 0);
 }
 
-TEST_F(HeapLinearAllocatorTest, ResizeAllocationThrowsOnOutOfBounds) {
+TEST_F(LinearAllocatorTest, ResizeAllocationThrowsOnOutOfBounds) {
   auto* valid{allocator.allocate(100, 8)};
   std::byte* invalid{valid + 10000};
   EXPECT_THROW(allocator.resize_allocation(invalid, 100, 200, 8),
                std::invalid_argument);
 }
 
-TEST_F(HeapLinearAllocatorTest, ResizeBufferGrows) {
+TEST_F(LinearAllocatorTest, ResizeBufferGrows) {
   auto* ptr1{allocator.allocate(900, 8)};
   ASSERT_NE(ptr1, nullptr);
 
@@ -131,7 +131,7 @@ TEST_F(HeapLinearAllocatorTest, ResizeBufferGrows) {
   EXPECT_NE(ptr3, nullptr);
 }
 
-TEST_F(HeapLinearAllocatorTest, ResizeBufferShrinks) {
+TEST_F(LinearAllocatorTest, ResizeBufferShrinks) {
   EXPECT_NO_THROW(allocator.resize_buffer(512));
   auto* ptr{allocator.allocate(512, 8)};
   EXPECT_NE(ptr, nullptr);
@@ -140,7 +140,7 @@ TEST_F(HeapLinearAllocatorTest, ResizeBufferShrinks) {
   EXPECT_EQ(ptr2, nullptr);
 }
 
-TEST_F(HeapLinearAllocatorTest, InvalidAlignmentThrows) {
+TEST_F(LinearAllocatorTest, InvalidAlignmentThrows) {
   EXPECT_THROW(allocator.allocate(100, 0), std::invalid_argument);
   EXPECT_THROW(allocator.allocate(100, 3), std::invalid_argument);
   EXPECT_THROW(allocator.allocate(100, 6), std::invalid_argument);
