@@ -27,14 +27,8 @@ FetchContent_MakeAvailable(googletest)
 # allocator library
 # =====================================
 
-file(GLOB_RECURSE LIB_SOURCES CONFIGURE_DEPENDS
-  ${CMAKE_SOURCE_DIR}/src/*.cpp
-)
-
-list(FILTER LIB_SOURCES EXCLUDE REGEX ".*main\\.cpp$")
-
-add_library(allocators STATIC ${LIB_SOURCES})
-target_include_directories(allocators PUBLIC ${CMAKE_SOURCE_DIR}/include)
+add_library(allocators INTERFACE)
+target_include_directories(allocators INTERFACE ${CMAKE_SOURCE_DIR}/include)
 
 # =====================================
 # app executable
