@@ -2,25 +2,57 @@
 
 #include <gtest/gtest.h>
 
-class LinearAllocatorTest : public ::testing::Test {
+namespace allocator {
+
+template <typename Allocator>
+class LinearAllocatorTypedTest : public ::testing::Test {
  protected:
-  LinearAllocator allocator{1024};
+  void SetUp() override {
+    if constexpr (std::is_same_v<Allocator,
+                                 LinearAllocator<0, BufferType::EXTERNAL>>) {
+      buf = std::make_unique<std::byte[]>(buf_size);
+      buf_span = std::span(buf.get(), buf_size);
+      alloc = std::make_unique<Allocator>(buf_span);
+    } else {
+      alloc = std::make_unique<Allocator>();
+    }
+  }
+
+  std::unique_ptr<Allocator> alloc;
+
+  // for buffertype::external allocator
+  size_t buf_size{1024};
+  std::unique_ptr<std::byte[]> buf{};
+  std::span<std::byte> buf_span{};
 };
 
-TEST_F(LinearAllocatorTest, BasicAllocation) {
-  auto* ptr{allocator.allocate(100, 8)};
-  ASSERT_NE(ptr, nullptr);
+using AllocatorTypes =
+    ::testing::Types<LinearAllocator<1024>,                      // heap
+                     LinearAllocator<1024, BufferType::STACK>,   // stack
+                     LinearAllocator<0, BufferType::EXTERNAL>>;  // external
 
-  auto* second_ptr{allocator.allocate(100, 8)};
-  ASSERT_NE(second_ptr, nullptr);
+TYPED_TEST_SUITE(LinearAllocatorTypedTest, AllocatorTypes);
 
-  EXPECT_NE(ptr, second_ptr);
+struct Obj {
+  int x;
+  double y;
+  Obj(int a, double b) : x(a), y(b) {}
+};
+
+TYPED_TEST(LinearAllocatorTypedTest, BasicAllocation) {
+  auto* ptr1{this->alloc->allocate(100, 8)};
+  ASSERT_NE(ptr1, nullptr);
+
+  auto* ptr2{this->alloc->allocate(100, 8)};
+  ASSERT_NE(ptr2, nullptr);
+
+  EXPECT_NE(ptr1, ptr2);
 }
 
-TEST_F(LinearAllocatorTest, AlignsCorrectly) {
-  auto* ptr1{allocator.allocate(13, 1)};
-  auto* ptr2{allocator.allocate(50, 8)};
-  auto* ptr3{allocator.allocate(100, 16)};
+TYPED_TEST(LinearAllocatorTypedTest, AlignsCorrectly) {
+  auto* ptr1{this->alloc->allocate(13, 1)};
+  auto* ptr2{this->alloc->allocate(50, 8)};
+  auto* ptr3{this->alloc->allocate(100, 16)};
 
   ASSERT_NE(ptr1, nullptr);
   ASSERT_NE(ptr2, nullptr);
@@ -31,9 +63,9 @@ TEST_F(LinearAllocatorTest, AlignsCorrectly) {
   EXPECT_EQ(reinterpret_cast<uintptr_t>(ptr3) % 16, 0);
 }
 
-TEST_F(LinearAllocatorTest, AlignmentsPadsToCreateGaps) {
-  auto* ptr1{allocator.allocate(13, 1)};
-  auto* ptr2{allocator.allocate(50, 8)};
+TYPED_TEST(LinearAllocatorTypedTest, AlignmentsPadsToCreateGaps) {
+  auto* ptr1{this->alloc->allocate(13, 1)};
+  auto* ptr2{this->alloc->allocate(50, 8)};
 
   ASSERT_NE(ptr1, nullptr);
   ASSERT_NE(ptr2, nullptr);
@@ -43,105 +75,115 @@ TEST_F(LinearAllocatorTest, AlignmentsPadsToCreateGaps) {
   EXPECT_EQ(gap, 16);
 }
 
-TEST_F(LinearAllocatorTest, ReturnsNullptrWhenOutOfMemory) {
-  auto* ptr{allocator.allocate(2000, 8)};
+TYPED_TEST(LinearAllocatorTypedTest, ReturnsNullptrWhenOutOfMemory) {
+  auto* ptr{this->alloc->allocate(2000, 8)};
   EXPECT_EQ(ptr, nullptr);
 }
 
-TEST_F(LinearAllocatorTest, ResetsSuccessfully) {
-  auto* ptr1{allocator.allocate(500, 8)};
+TYPED_TEST(LinearAllocatorTypedTest, ResetsSuccessfully) {
+  auto* ptr1{this->alloc->allocate(500, 8)};
   ASSERT_NE(ptr1, nullptr);
 
-  allocator.reset();
+  this->alloc->reset();
 
-  auto* ptr2{allocator.allocate(500, 8)};
+  auto* ptr2{this->alloc->allocate(500, 8)};
   ASSERT_NE(ptr2, nullptr);
 
-  EXPECT_EQ(ptr1, ptr2);
+  EXPECT_EQ(ptr1, ptr2);  // should occupy same memory
 }
 
-TEST_F(LinearAllocatorTest, DeallocateIsNotSupported) {
-  auto* ptr1{allocator.allocate(100, 8)};
+TYPED_TEST(LinearAllocatorTypedTest, DeallocateIsNotSupported) {
+  auto* ptr1{this->alloc->allocate(100, 8)};
   ASSERT_NE(ptr1, nullptr);
 
-  allocator.deallocate(ptr1);
+  this->alloc->deallocate(ptr1);
 
-  auto* ptr2{allocator.allocate(100, 8)};
+  auto* ptr2{this->alloc->allocate(100, 8)};
   ASSERT_NE(ptr2, nullptr);
 
   EXPECT_GT(reinterpret_cast<uintptr_t>(ptr2),
             reinterpret_cast<uintptr_t>(ptr1));
 }
 
-TEST_F(LinearAllocatorTest, ResizeAllocationInPlaceGrows) {
-  auto* ptr1{allocator.allocate(100, 8)};
-  auto* ptr2{allocator.allocate(50, 8)};
+TYPED_TEST(LinearAllocatorTypedTest, ResizeLastInPlaceGrows) {
+  auto* ptr1{this->alloc->allocate(100, 8)};
+  auto* ptr2{this->alloc->allocate(50, 8)};
 
   ASSERT_NE(ptr1, nullptr);
   ASSERT_NE(ptr2, nullptr);
 
   auto* resized{
-      allocator.resize_allocation(ptr2, 50, 100, 8)};  // from 50 to 100 bytes
+      this->alloc->resize_last(ptr2, 50, 100, 8)};  // from 50 to 100 bytes
   ASSERT_NE(resized, nullptr);
   EXPECT_EQ(resized, ptr2);
 }
 
-TEST_F(LinearAllocatorTest, ResizeAllocationInPlaceShrinks) {
-  auto* ptr{allocator.allocate(100, 8)};
+TYPED_TEST(LinearAllocatorTypedTest, ResizeLastInPlaceShrinks) {
+  auto* ptr{this->alloc->allocate(100, 8)};
   ASSERT_NE(ptr, nullptr);
 
   auto* resized{
-      allocator.resize_allocation(ptr, 100, 50, 8)};  // from 100 to 50 bytes
+      this->alloc->resize_last(ptr, 100, 50, 8)};  // from 100 to 50 bytes
 
   ASSERT_NE(resized, nullptr);
   EXPECT_EQ(resized, ptr);
 }
 
-TEST_F(LinearAllocatorTest, ResizeAllocationReturnsNullptrIfTooLarge) {
-  auto* ptr{allocator.allocate(100, 8)};
+TYPED_TEST(LinearAllocatorTypedTest, ResizeLastReturnsNullptrIfTooLarge) {
+  auto* ptr{this->alloc->allocate(100, 8)};
   ASSERT_NE(ptr, nullptr);
 
-  auto* resized{allocator.resize_allocation(ptr, 100, 2000, 8)};
+  auto* resized{this->alloc->resize_last(ptr, 100, 2000, 8)};
   EXPECT_EQ(resized, nullptr);
 }
 
-TEST_F(LinearAllocatorTest, ResizeAllocationOnNullptrAllocatesNew) {
-  auto* ptr{allocator.resize_allocation(nullptr, 0, 100, 8)};
-  ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(reinterpret_cast<uintptr_t>(ptr) % 8, 0);
-}
-
-TEST_F(LinearAllocatorTest, ResizeAllocationThrowsOnOutOfBounds) {
-  auto* valid{allocator.allocate(100, 8)};
+TYPED_TEST(LinearAllocatorTypedTest, ResizeLastReturnsNullptrOnOutOfBounds) {
+  auto* valid{this->alloc->allocate(100, 8)};
   std::byte* invalid{valid + 10000};
-  EXPECT_THROW(allocator.resize_allocation(invalid, 100, 200, 8),
-               std::invalid_argument);
+  EXPECT_EQ(this->alloc->resize_last(invalid, 100, 200, 8), nullptr);
 }
 
-TEST_F(LinearAllocatorTest, ResizeBufferGrows) {
-  auto* ptr1{allocator.allocate(900, 8)};
-  ASSERT_NE(ptr1, nullptr);
-
-  auto* ptr2{allocator.allocate(200, 8)};
-  EXPECT_EQ(ptr2, nullptr);
-
-  EXPECT_NO_THROW(allocator.resize_buffer(2048));
-
-  auto* ptr3{allocator.allocate(1900, 8)};
-  EXPECT_NE(ptr3, nullptr);
+TYPED_TEST(LinearAllocatorTypedTest, InvalidAlignmentReturnsNullptr) {
+  EXPECT_EQ(this->alloc->allocate(100, 0), nullptr);
+  EXPECT_EQ(this->alloc->allocate(100, 3), nullptr);
+  EXPECT_EQ(this->alloc->allocate(100, 6), nullptr);
 }
 
-TEST_F(LinearAllocatorTest, ResizeBufferShrinks) {
-  EXPECT_NO_THROW(allocator.resize_buffer(512));
-  auto* ptr{allocator.allocate(512, 8)};
-  EXPECT_NE(ptr, nullptr);
+TYPED_TEST(LinearAllocatorTypedTest, TypedAllocateSucceeds) {
+  int n{10};
+  int* ptr{this->alloc->template allocate<int>(n)};
+  ASSERT_NE(ptr, nullptr);
 
-  auto* ptr2{allocator.allocate(1, 1)};
-  EXPECT_EQ(ptr2, nullptr);
+  // verify alignment
+  EXPECT_EQ(reinterpret_cast<uintptr_t>(ptr) % alignof(int), 0);
+
+  // verify allocation
+  for (int i{}; i < n; ++i) {
+    ptr[i] = i;
+    EXPECT_EQ(ptr[i], i);
+  }
 }
 
-TEST_F(LinearAllocatorTest, InvalidAlignmentThrows) {
-  EXPECT_THROW(allocator.allocate(100, 0), std::invalid_argument);
-  EXPECT_THROW(allocator.allocate(100, 3), std::invalid_argument);
-  EXPECT_THROW(allocator.allocate(100, 6), std::invalid_argument);
+TYPED_TEST(LinearAllocatorTypedTest, EmplaceAllocatesAndCreatesInPlace) {
+  int a{15};
+  double b{3.14};
+  Obj* obj{this->alloc->template emplace<Obj>(a, b)};
+  ASSERT_NE(obj, nullptr);
+
+  // check construction
+  EXPECT_EQ(obj->x, a);
+  EXPECT_EQ(obj->y, b);
 }
+
+TYPED_TEST(LinearAllocatorTypedTest, DestroysObjectWIthoutDeallocating) {
+  Obj* obj1{this->alloc->template emplace<Obj>(1, 2.0)};
+  ASSERT_NE(obj1, nullptr);
+  this->alloc->destroy(obj1);
+
+  Obj* obj2{this->alloc->template emplace<Obj>(1, 2.0)};
+  ASSERT_NE(obj2, nullptr);
+  this->alloc->destroy(obj2);
+
+  EXPECT_EQ(obj1, obj2);  // should occupy same memory
+}
+}  // namespace allocator
