@@ -1,9 +1,9 @@
 #pragma once
 
-#include "linear_allocator.h"
-
 #include <memory>
 #include <utility>
+
+#include "linear_allocator.h"
 
 namespace allocator {
 template <size_t S, BufferType B>
@@ -108,11 +108,8 @@ T* LinearAllocator<S, B>::emplace(Args&&... args) {
 template <size_t S, BufferType B>
 template <typename T>
 void LinearAllocator<S, B>::destroy(T* ptr) {
-  size_t alignment{alignof(T)};
-  size_t previous_aligned{align_forward(previous_offset, alignment)};
-  if (ptr && data + previous_aligned == reinterpret_cast<std::byte*>(ptr)) {
+  if (ptr) {
     std::destroy_at(ptr);
-    offset = previous_offset;
   }
 }
 }  // namespace allocator

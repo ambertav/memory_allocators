@@ -2,8 +2,10 @@
 
 #include <gtest/gtest.h>
 
-namespace allocator {
+#include <memory>
+#include <span>
 
+namespace allocator::tests {
 template <typename Allocator>
 class LinearAllocatorTypedTest : public ::testing::Test {
  protected:
@@ -18,10 +20,10 @@ class LinearAllocatorTypedTest : public ::testing::Test {
     }
   }
 
-  std::unique_ptr<Allocator> alloc;
+  std::unique_ptr<Allocator> alloc{};
 
   // for buffertype::external allocator
-  size_t buf_size{1024};
+  static constexpr size_t buf_size{1024};
   std::unique_ptr<std::byte[]> buf{};
   std::span<std::byte> buf_span{};
 };
@@ -37,6 +39,14 @@ struct Obj {
   int x;
   double y;
   Obj(int a, double b) : x(a), y(b) {}
+};
+
+struct TrackedObj {
+  static inline int destructor_calls = 0;
+  int value;
+
+  TrackedObj(int v) : value(v) {}
+  ~TrackedObj() { ++destructor_calls; }
 };
 
 TYPED_TEST(LinearAllocatorTypedTest, BasicAllocation) {
@@ -173,17 +183,24 @@ TYPED_TEST(LinearAllocatorTypedTest, EmplaceAllocatesAndCreatesInPlace) {
   // check construction
   EXPECT_EQ(obj->x, a);
   EXPECT_EQ(obj->y, b);
+
+  this->alloc->template destroy<Obj>(obj);
 }
 
-TYPED_TEST(LinearAllocatorTypedTest, DestroysObjectWIthoutDeallocating) {
-  Obj* obj1{this->alloc->template emplace<Obj>(1, 2.0)};
+TYPED_TEST(LinearAllocatorTypedTest, DestroyCallsDestructor) {
+  TrackedObj::destructor_calls = 0;  // assign to 0 at start of each typed test
+
+  TrackedObj* obj1{this->alloc->template emplace<TrackedObj>(10)};
+  TrackedObj* obj2{this->alloc->template emplace<TrackedObj>(10)};
+  TrackedObj* obj3{this->alloc->template emplace<TrackedObj>(10)};
+
   ASSERT_NE(obj1, nullptr);
-  this->alloc->destroy(obj1);
-
-  Obj* obj2{this->alloc->template emplace<Obj>(1, 2.0)};
   ASSERT_NE(obj2, nullptr);
-  this->alloc->destroy(obj2);
+  ASSERT_NE(obj3, nullptr);
 
-  EXPECT_EQ(obj1, obj2);  // should occupy same memory
+  this->alloc->template destroy(obj1);
+  this->alloc->template destroy(obj2);
+  this->alloc->template destroy(obj3);
+  EXPECT_EQ(TrackedObj::destructor_calls, 3);
 }
-}  // namespace allocator
+}  // namespace allocator::tests
