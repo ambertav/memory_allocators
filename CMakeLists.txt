@@ -19,9 +19,15 @@ FetchContent_Declare(
   googletest
   URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
 )
-
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
+
+FetchContent_Declare(
+  benchmark
+  GIT_REPOSITORY https://github.com/google/benchmark.git
+  GIT_TAG v1.7.1
+)
+FetchContent_MakeAvailable(benchmark)
 
 # =====================================
 # allocator library
@@ -56,3 +62,18 @@ set_target_properties(tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_
 
 include(GoogleTest)
 gtest_discover_tests(tests)
+
+# =====================================
+# performance
+# =====================================
+
+file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS
+  ${CMAKE_SOURCE_DIR}/perf/*.cpp
+)
+
+add_executable(perf ${TEST_SOURCES})
+target_link_libraries(perf PRIVATE 
+    allocators
+    benchmark::benchmark
+)
+set_target_properties(perf PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
