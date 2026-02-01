@@ -18,7 +18,7 @@ LinearAllocator<S, B>::LinearAllocator()
 template <size_t S, BufferType B>
 LinearAllocator<S, B>::LinearAllocator()
   requires(B == BufferType::STACK)
-    : buffer(),
+    : buffer(std::array<std::byte, S>{}),
       data(buffer.data()),
       capacity(S),
       offset(0),
@@ -34,7 +34,7 @@ LinearAllocator<S, B>::LinearAllocator(std::span<std::byte> buf)
       previous_offset(0) {}
 
 template <size_t S, BufferType B>
-LinearAllocator<S, B>::~LinearAllocator() {
+LinearAllocator<S, B>::~LinearAllocator() noexcept {
   if constexpr (B == BufferType::HEAP) {
     ::operator delete(buffer);
   }
@@ -46,6 +46,9 @@ std::byte* LinearAllocator<S, B>::allocate(size_t size, size_t alignment) {
     return nullptr;
   }
   size_t aligned{align_forward(offset, alignment)};
+  if (aligned < offset) {  // check uint overflow
+    return nullptr;
+  }
 
   size_t new_offset{aligned + size};
   if (new_offset > capacity) {
@@ -58,33 +61,43 @@ std::byte* LinearAllocator<S, B>::allocate(size_t size, size_t alignment) {
 }
 
 template <size_t S, BufferType B>
-void LinearAllocator<S, B>::deallocate([[maybe_unused]] std::byte* ptr) {
-  // not supported in linear allocators
-}
-
-template <size_t S, BufferType B>
-void LinearAllocator<S, B>::reset() {
+void LinearAllocator<S, B>::reset() noexcept {
   previous_offset = 0;
   offset = 0;
 }
 
 template <size_t S, BufferType B>
 std::byte* LinearAllocator<S, B>::resize_last(std::byte* previous_memory,
-                                              size_t previous_size,
                                               size_t new_size,
                                               size_t alignment) {
+  if (!is_valid_alignment(alignment)) {
+    return nullptr;
+  }
+
+  // verify pointer to previous allocation
   size_t previous_aligned{align_forward(previous_offset, alignment)};
   if (data + previous_aligned != previous_memory) {
     return nullptr;
   }
 
-  offset = previous_offset;
-  return allocate(new_size, alignment);
+  // check fit
+  size_t new_offset = previous_aligned + new_size;
+  if (new_offset > capacity) {
+    return nullptr;
+  }
+
+  // update and return same pointer
+  offset = new_offset;
+  return previous_memory;
 }
 
 template <size_t S, BufferType B>
 template <typename T>
 T* LinearAllocator<S, B>::allocate(size_t count) {
+  if (count > SIZE_MAX / sizeof(T)) {  // check uint overflow
+    return nullptr;
+  }
+
   size_t size{sizeof(T) * count};
   size_t alignment{alignof(T)};
   return reinterpret_cast<T*>(allocate(size, alignment));
@@ -107,7 +120,8 @@ T* LinearAllocator<S, B>::emplace(Args&&... args) {
 
 template <size_t S, BufferType B>
 template <typename T>
-void LinearAllocator<S, B>::destroy(T* ptr) {
+void LinearAllocator<S, B>::destroy(T* ptr) noexcept {
+  // asymmetric, does not deallocate (only reset does)
   if (ptr) {
     std::destroy_at(ptr);
   }

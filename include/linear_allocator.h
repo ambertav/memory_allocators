@@ -17,26 +17,31 @@ class LinearAllocator {
     requires(B == BufferType::STACK);
   explicit LinearAllocator(std::span<std::byte> buf)
     requires(B == BufferType::EXTERNAL);
-  ~LinearAllocator();
+  ~LinearAllocator() noexcept;
 
-  std::byte* allocate(size_t size, size_t alignment);
-  void deallocate(std::byte* ptr);
-  void reset();
+  LinearAllocator(const LinearAllocator&) = delete;
+  LinearAllocator& operator=(const LinearAllocator&) = delete;
 
-  std::byte* resize_last(std::byte* previous_memory, size_t previous_size,
-                         size_t new_size, size_t alignment);
+  LinearAllocator(LinearAllocator&&) = delete;
+  LinearAllocator& operator=(LinearAllocator&&) = delete;
+
+  [[nodiscard]] std::byte* allocate(size_t size, size_t alignment);
+  void reset() noexcept;
+
+  [[nodiscard]] std::byte* resize_last(std::byte* previous_memory,
+                                       size_t new_size, size_t alignment);
 
   //////////////////////
   // type-safe helpers
   //////////////////////
   template <typename T>
-  T* allocate(size_t count = 1);
+  [[nodiscard]] T* allocate(size_t count = 1);
 
   template <typename T, typename... Args>
-  T* emplace(Args&&... args);
+  [[nodiscard]] T* emplace(Args&&... args);
 
   template <typename T>
-  void destroy(T* ptr);
+  void destroy(T* ptr) noexcept;
 
  private:
   std::conditional_t<B == BufferType::STACK, std::array<std::byte, S>,

@@ -102,19 +102,6 @@ TYPED_TEST(LinearAllocatorTypedTest, ResetsSuccessfully) {
   EXPECT_EQ(ptr1, ptr2);  // should occupy same memory
 }
 
-TYPED_TEST(LinearAllocatorTypedTest, DeallocateIsNotSupported) {
-  auto* ptr1{this->alloc->allocate(100, 8)};
-  ASSERT_NE(ptr1, nullptr);
-
-  this->alloc->deallocate(ptr1);
-
-  auto* ptr2{this->alloc->allocate(100, 8)};
-  ASSERT_NE(ptr2, nullptr);
-
-  EXPECT_GT(reinterpret_cast<uintptr_t>(ptr2),
-            reinterpret_cast<uintptr_t>(ptr1));
-}
-
 TYPED_TEST(LinearAllocatorTypedTest, ResizeLastInPlaceGrows) {
   auto* ptr1{this->alloc->allocate(100, 8)};
   auto* ptr2{this->alloc->allocate(50, 8)};
@@ -123,7 +110,7 @@ TYPED_TEST(LinearAllocatorTypedTest, ResizeLastInPlaceGrows) {
   ASSERT_NE(ptr2, nullptr);
 
   auto* resized{
-      this->alloc->resize_last(ptr2, 50, 100, 8)};  // from 50 to 100 bytes
+      this->alloc->resize_last(ptr2, 100, 8)};  // from 50 to 100 bytes
   ASSERT_NE(resized, nullptr);
   EXPECT_EQ(resized, ptr2);
 }
@@ -133,7 +120,7 @@ TYPED_TEST(LinearAllocatorTypedTest, ResizeLastInPlaceShrinks) {
   ASSERT_NE(ptr, nullptr);
 
   auto* resized{
-      this->alloc->resize_last(ptr, 100, 50, 8)};  // from 100 to 50 bytes
+      this->alloc->resize_last(ptr, 50, 8)};  // from 100 to 50 bytes
 
   ASSERT_NE(resized, nullptr);
   EXPECT_EQ(resized, ptr);
@@ -143,14 +130,14 @@ TYPED_TEST(LinearAllocatorTypedTest, ResizeLastReturnsNullptrIfTooLarge) {
   auto* ptr{this->alloc->allocate(100, 8)};
   ASSERT_NE(ptr, nullptr);
 
-  auto* resized{this->alloc->resize_last(ptr, 100, 2000, 8)};
+  auto* resized{this->alloc->resize_last(ptr, 2000, 8)};
   EXPECT_EQ(resized, nullptr);
 }
 
 TYPED_TEST(LinearAllocatorTypedTest, ResizeLastReturnsNullptrOnOutOfBounds) {
   auto* valid{this->alloc->allocate(100, 8)};
   std::byte* invalid{valid + 10000};
-  EXPECT_EQ(this->alloc->resize_last(invalid, 100, 200, 8), nullptr);
+  EXPECT_EQ(this->alloc->resize_last(invalid, 200, 8), nullptr);
 }
 
 TYPED_TEST(LinearAllocatorTypedTest, InvalidAlignmentReturnsNullptr) {
