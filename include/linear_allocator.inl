@@ -41,7 +41,8 @@ LinearAllocator<S, B>::~LinearAllocator() noexcept {
 }
 
 template <size_t S, BufferType B>
-std::byte* LinearAllocator<S, B>::allocate(size_t size, size_t alignment) {
+std::byte* LinearAllocator<S, B>::allocate(size_t size,
+                                           size_t alignment) noexcept {
   if (!is_valid_alignment(alignment)) {
     return nullptr;
   }
@@ -69,7 +70,7 @@ void LinearAllocator<S, B>::reset() noexcept {
 template <size_t S, BufferType B>
 std::byte* LinearAllocator<S, B>::resize_last(std::byte* previous_memory,
                                               size_t new_size,
-                                              size_t alignment) {
+                                              size_t alignment) noexcept {
   if (!is_valid_alignment(alignment)) {
     return nullptr;
   }
@@ -91,9 +92,13 @@ std::byte* LinearAllocator<S, B>::resize_last(std::byte* previous_memory,
   return previous_memory;
 }
 
+//////////////////////
+// type-safe helpers
+//////////////////////
+
 template <size_t S, BufferType B>
 template <typename T>
-T* LinearAllocator<S, B>::allocate(size_t count) {
+T* LinearAllocator<S, B>::allocate(size_t count) noexcept {
   if (count > SIZE_MAX / sizeof(T)) {  // check uint overflow
     return nullptr;
   }

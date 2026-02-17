@@ -25,17 +25,17 @@ class LinearAllocator {
   LinearAllocator(LinearAllocator&&) = delete;
   LinearAllocator& operator=(LinearAllocator&&) = delete;
 
-  [[nodiscard]] std::byte* allocate(size_t size, size_t alignment);
+  [[nodiscard]] std::byte* allocate(size_t size, size_t alignment) noexcept;
   void reset() noexcept;
 
   [[nodiscard]] std::byte* resize_last(std::byte* previous_memory,
-                                       size_t new_size, size_t alignment);
+                                       size_t new_size, size_t alignment) noexcept;
 
   //////////////////////
   // type-safe helpers
   //////////////////////
   template <typename T>
-  [[nodiscard]] T* allocate(size_t count = 1);
+  [[nodiscard]] T* allocate(size_t count = 1) noexcept;
 
   template <typename T, typename... Args>
   [[nodiscard]] T* emplace(Args&&... args);
