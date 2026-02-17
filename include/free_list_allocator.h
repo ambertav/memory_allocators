@@ -32,15 +32,18 @@ class FreeListAllocator {
   FreeListAllocator(FreeListAllocator&&) = delete;
   FreeListAllocator& operator=(FreeListAllocator&&) = delete;
 
-  [[nodiscard]] std::byte* allocate(size_t size, size_t alignment);
-  void deallocate(std::byte* ptr, size_t size);
+  [[nodiscard]] std::byte* allocate(size_t size, size_t alignment) noexcept;
+  void deallocate(std::byte* ptr, size_t size) noexcept;
   void reset() noexcept;
 
   //////////////////////
   // type-safe helpers
   //////////////////////
   template <typename T>
-  [[nodiscard]] T* allocate(size_t count = 1);
+  [[nodiscard]] T* allocate(size_t count = 1) noexcept;
+
+  template <typename T>
+  void deallocate(T* ptr, size_t count) noexcept;
 
   template <typename T, typename... Args>
   [[nodiscard]] T* emplace(Args&&... args);
@@ -50,18 +53,20 @@ class FreeListAllocator {
 
  private:
   std::pair<Node* /* previous */, Node* /*current*/> find_first_fit(
-      size_t size, size_t alignment)
+      size_t size, size_t alignment) noexcept
     requires(F == FitStrategy::FIRST);
 
   std::pair<Node* /* previous */, Node* /* current */> find_best_fit(
-      size_t size, size_t alignment)
+      size_t size, size_t alignment) noexcept
     requires(F == FitStrategy::BEST);
 
-std::pair<size_t /* aligned address */, size_t /* required space */> get_allocation_requirements(Node* current, size_t size, size_t alignment);
+  std::pair<size_t /* aligned address */, size_t /* required space */>
+  get_allocation_requirements(Node* current, size_t size,
+                              size_t alignment) noexcept;
 
   Node* handle_next_free(Node* current, size_t required_space,
-                         size_t remaining);
-  void handle_links(Node* previous, Node* next);
+                         size_t remaining) noexcept;
+  void handle_links(Node* previous, Node* next) noexcept;
 
   std::conditional_t<B == BufferType::STACK, std::array<std::byte, S>,
                      std::byte*>
