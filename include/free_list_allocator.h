@@ -4,14 +4,22 @@
 #include <cstddef>
 #include <span>
 #include <type_traits>
+#include <cstdint>
 
 #include "common.h"
 
 namespace allocator {
 
+
+struct Header {
+    size_t block_size;
+    size_t padding;
+};
+
+
 struct Node {
+    Node* next;
   size_t size;
-  Node* next;
 };
 
 template <size_t S, BufferType B = BufferType::HEAP,
@@ -33,8 +41,11 @@ class FreeListAllocator {
   FreeListAllocator& operator=(FreeListAllocator&&) = delete;
 
   [[nodiscard]] std::byte* allocate(size_t size, size_t alignment) noexcept;
-  void deallocate(std::byte* ptr, size_t size) noexcept;
+  void deallocate(std::byte* ptr) noexcept;
   void reset() noexcept;
+
+  size_t get_used() noexcept;
+  size_t get_free() noexcept;
 
   //////////////////////
   // type-safe helpers
@@ -43,7 +54,7 @@ class FreeListAllocator {
   [[nodiscard]] T* allocate(size_t count = 1) noexcept;
 
   template <typename T>
-  void deallocate(T* ptr, size_t count) noexcept;
+  void deallocate(T* ptr) noexcept;
 
   template <typename T, typename... Args>
   [[nodiscard]] T* emplace(Args&&... args);
@@ -60,7 +71,7 @@ class FreeListAllocator {
       size_t size, size_t alignment) noexcept
     requires(F == FitStrategy::BEST);
 
-  std::pair<size_t /* aligned address */, size_t /* required space */>
+  std::pair<uintptr_t /* aligned_block */, size_t /* padding */>
   get_allocation_requirements(Node* current, size_t size,
                               size_t alignment) noexcept;
 
