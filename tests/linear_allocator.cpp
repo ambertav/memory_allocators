@@ -35,20 +35,6 @@ using AllocatorTypes =
 
 TYPED_TEST_SUITE(LinearAllocatorTypedTest, AllocatorTypes);
 
-struct Obj {
-  int x;
-  double y;
-  Obj(int a, double b) : x(a), y(b) {}
-};
-
-struct TrackedObj {
-  static inline int destructor_calls = 0;
-  int value;
-
-  TrackedObj(int v) : value(v) {}
-  ~TrackedObj() { ++destructor_calls; }
-};
-
 TYPED_TEST(LinearAllocatorTypedTest, BasicAllocation) {
   auto* ptr1{this->alloc->allocate(100, 8)};
   ASSERT_NE(ptr1, nullptr);
@@ -73,7 +59,7 @@ TYPED_TEST(LinearAllocatorTypedTest, AlignsCorrectly) {
   EXPECT_EQ(reinterpret_cast<uintptr_t>(ptr3) % 16, 0);
 }
 
-TYPED_TEST(LinearAllocatorTypedTest, AlignmentsPadsToCreateGaps) {
+TYPED_TEST(LinearAllocatorTypedTest, AlignmentPadsToCreateGaps) {
   auto* ptr1{this->alloc->allocate(13, 1)};
   auto* ptr2{this->alloc->allocate(50, 8)};
 
@@ -99,7 +85,7 @@ TYPED_TEST(LinearAllocatorTypedTest, ResetsSuccessfully) {
   auto* ptr2{this->alloc->allocate(500, 8)};
   ASSERT_NE(ptr2, nullptr);
 
-  EXPECT_EQ(ptr1, ptr2);  // should occupy same memory
+  EXPECT_EQ(ptr1, ptr2);  // should point to the same memory
 }
 
 TYPED_TEST(LinearAllocatorTypedTest, ResizeLastInPlaceGrows) {
@@ -136,6 +122,8 @@ TYPED_TEST(LinearAllocatorTypedTest, ResizeLastReturnsNullptrIfTooLarge) {
 
 TYPED_TEST(LinearAllocatorTypedTest, ResizeLastReturnsNullptrOnOutOfBounds) {
   auto* valid{this->alloc->allocate(100, 8)};
+  ASSERT_NE(valid, nullptr);
+  
   std::byte* invalid{valid + 10000};
   EXPECT_EQ(this->alloc->resize_last(invalid, 200, 8), nullptr);
 }
