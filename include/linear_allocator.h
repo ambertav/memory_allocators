@@ -11,6 +11,8 @@ namespace allocator {
 template <size_t S, BufferType B = BufferType::HEAP>
 class LinearAllocator {
  public:
+  static constexpr BufferType buffer_type = B;
+
   explicit LinearAllocator()
     requires(B == BufferType::HEAP);
   explicit LinearAllocator()
@@ -29,7 +31,8 @@ class LinearAllocator {
   void reset() noexcept;
 
   [[nodiscard]] std::byte* resize_last(std::byte* previous_memory,
-                                       size_t new_size, size_t alignment) noexcept;
+                                       size_t new_size,
+                                       size_t alignment) noexcept;
 
   //////////////////////
   // type-safe helpers

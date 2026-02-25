@@ -72,6 +72,8 @@ file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS
 )
 
 add_executable(perf ${TEST_SOURCES})
+target_include_directories(perf PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/perf/include)
+
 target_link_libraries(perf PRIVATE 
     allocators
     benchmark::benchmark

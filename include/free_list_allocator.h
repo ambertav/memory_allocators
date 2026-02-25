@@ -2,23 +2,21 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <span>
 #include <type_traits>
-#include <cstdint>
 
 #include "common.h"
 
 namespace allocator {
 
-
 struct Header {
-    size_t block_size;
-    size_t padding;
+  size_t block_size;
+  size_t padding;
 };
 
-
 struct Node {
-    Node* next;
+  Node* next;
   size_t size;
 };
 
@@ -26,6 +24,7 @@ template <size_t S, BufferType B = BufferType::HEAP,
           FitStrategy F = FitStrategy::FIRST>
 class FreeListAllocator {
  public:
+  static constexpr BufferType buffer_type = B;
   explicit FreeListAllocator()
     requires(B == BufferType::HEAP);
   explicit FreeListAllocator()
