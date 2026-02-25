@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 namespace allocator {
 
 enum class BufferType { HEAP, STACK, EXTERNAL };
