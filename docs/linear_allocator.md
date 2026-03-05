@@ -27,14 +27,14 @@ Creates a linear allocator with capacity `S` bytes. Behavior depends on `BufferT
 
 ### Memory Management
 ```cpp
-[[nodiscard]] std::byte* allocate(size_t size, size_t alignment)
+[[nodiscard]] std::byte* allocate(size_t size, size_t alignment) noexcept
 ```
 
 Allocates `size` bytes aligned to `alignment` boundary. Returns pointer to allocated memory, or `nullptr` on failure (insufficient space, invalid alignment, or overflow).
 
 ```cpp
 [[nodiscard]] std::byte* resize_last(std::byte* previous_memory,
-                                       size_t new_size, size_t alignment);
+                                       size_t new_size, size_t alignment) noexcept
 ```
 
 Resizes the most recent allocation, if possible. Returns the same pointer if successful, `nullptr` if the pointer doesn't match the last allocation or if insufficient space remains. Only works on the most recent allocation made.
@@ -48,17 +48,17 @@ Resets the allocator, reclaiming all allocated memory for reuse. Invalidates all
 ### Typed Helpers
 ```cpp
 template <typename T>
-[[nodiscard]] T* allocate(size_t count = 1)
+[[nodiscard]] T* allocate(size_t count = 1) noexcept
 ```
 
-Typed allocation for `count` number of objects of type `T`. Uses `alignof(T)` and `sizeof(T)` to automatically align. Returns typed pointer or `nullptr` on failure.
+Typed allocation for `count` number of objects of type `T`. Uses `alignof(T)` and `sizeof(T)` to automatically align. Returns a typed pointer or `nullptr` on failure.
 
 ```cpp
 template <typename T, typename... Args>
 [[nodiscard]] T* emplace(Args&&... args)
 ```
 
-Allocates space for type `T` and constructs an object in-place using constructor arguments `args` and `std::construct_at`. Returns pointer to constructed object, or `nullptr` if allocation fails.
+Allocates space for type `T` and constructs an object in-place using constructor arguments `args` and `std::construct_at`. Returns pointer to the constructed object, or `nullptr` if allocation fails.
 
 ```cpp
 template <typename T> 
@@ -72,7 +72,7 @@ Calls destructor on object at `ptr` via `std::destroy_at`. Does **not** dealloca
 #include "linear_allocator.h"
 
 // Heap-based allocator (1KB)
-allocator::LinearAllocator<1024, allocator::BufferType::HEAP> heap_alloc;
+allocator::LinearAllocator<1024, allocator::BufferType::HEAP> heap_alloc{};
 
 // Allocate and construct objects
 int* x {heap_alloc.emplace<int>(42)};
@@ -92,7 +92,7 @@ allocator::LinearAllocator<512, allocator::BufferType::STACK> stack_alloc;
 std::byte* buffer {stack_alloc.allocate(128, 16)};  // 128 bytes, 16-byte aligned
 
 // External buffer
-std::array my_buffer;
+std::array my_buffer{};
 allocator::LinearAllocator<2048, allocator::BufferType::EXTERNAL> ext_alloc{std::span{my_buffer}};
 ```
 

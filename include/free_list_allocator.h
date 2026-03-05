@@ -16,10 +16,10 @@ struct Node {
 };
 
 struct Placement {
-    Node* previous;
-    Node* current;
-    size_t required;
-    size_t padding;
+  Node* previous;
+  Node* current;
+  size_t required;
+  size_t padding;
 };
 
 template <size_t S, BufferType B = BufferType::HEAP,
@@ -64,12 +64,10 @@ class FreeListAllocator {
   void destroy(T* ptr) noexcept;
 
  private:
-  Placement find_first_fit(
-      size_t size, size_t alignment) noexcept
+  Placement find_first_fit(size_t size, size_t alignment) noexcept
     requires(F == FitStrategy::FIRST);
 
-  Placement find_best_fit(
-      size_t size, size_t alignmnet) noexcept
+  Placement find_best_fit(size_t size, size_t alignmnet) noexcept
     requires(F == FitStrategy::BEST);
 
   Node* handle_next_free(Node* current, size_t required_space,
