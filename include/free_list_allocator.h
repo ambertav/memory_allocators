@@ -10,14 +10,16 @@
 
 namespace allocator {
 
-struct Header {
-  size_t block_size;
-  size_t padding;
-};
-
 struct Node {
   Node* next;
   size_t size;
+};
+
+struct Placement {
+    Node* previous;
+    Node* current;
+    size_t required;
+    size_t padding;
 };
 
 template <size_t S, BufferType B = BufferType::HEAP,
@@ -62,17 +64,13 @@ class FreeListAllocator {
   void destroy(T* ptr) noexcept;
 
  private:
-  std::pair<Node* /* previous */, Node* /*current*/> find_first_fit(
+  Placement find_first_fit(
       size_t size, size_t alignment) noexcept
     requires(F == FitStrategy::FIRST);
 
-  std::pair<Node* /* previous */, Node* /* current */> find_best_fit(
-      size_t size, size_t alignment) noexcept
+  Placement find_best_fit(
+      size_t size, size_t alignmnet) noexcept
     requires(F == FitStrategy::BEST);
-
-  std::pair<uintptr_t /* aligned_block */, size_t /* padding */>
-  get_allocation_requirements(Node* current, size_t size,
-                              size_t alignment) noexcept;
 
   Node* handle_next_free(Node* current, size_t required_space,
                          size_t remaining) noexcept;

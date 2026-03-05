@@ -56,35 +56,32 @@ std::byte* FreeListAllocator<S, B, F>::allocate(size_t size,
     return nullptr;
   }
 
-  std::pair<Node*, Node*> placement{};
+  Placement placement{};
   if constexpr (F == FitStrategy::FIRST) {
     placement = find_first_fit(size, alignment);
   } else if constexpr (F == FitStrategy::BEST) {
     placement = find_best_fit(size, alignment);
   }
 
-  auto& [previous, current] = placement;
-
-  if (current == nullptr) {
+  if (placement.current == nullptr) {
     return nullptr;
   }
 
-  auto [aligned_block, padding] =
-      get_allocation_requirements(current, size, alignment);
-    size_t required_space{size + padding};
+  size_t remaining{placement.current->size - placement.required};
 
-  size_t remaining{current->size - required_space};
+  Node* next{
+      handle_next_free(placement.current, placement.required, remaining)};
+  handle_links(placement.previous, next);
 
-  Node* next{handle_next_free(current, required_space, remaining)};
-  handle_links(previous, next);
+  placement.current->size = placement.required;
+  used += placement.required;
 
-  Header* header{reinterpret_cast<Header*>(aligned_block - sizeof(Header))};
-  header->block_size = required_space;
-  header->padding = padding;
+  uintptr_t aligned{reinterpret_cast<uintptr_t>(placement.current) +
+                    sizeof(Node) + placement.padding};
+  // adds padding pointer right before user data
+  *reinterpret_cast<size_t*>(aligned - sizeof(size_t)) = placement.padding;
 
-  used += required_space;
-
-  return reinterpret_cast<std::byte*>(aligned_block);
+  return reinterpret_cast<std::byte*>(aligned);
 }
 
 template <size_t S, BufferType B, FitStrategy F>
@@ -93,54 +90,56 @@ void FreeListAllocator<S, B, F>::deallocate(std::byte* ptr) noexcept {
     return;
   }
 
-  Header* header{reinterpret_cast<Header*>(ptr - sizeof(Header))};
   assert(ptr >= data && ptr <= data + capacity && "pointer is out of bounds");
+
+  size_t padding{*(reinterpret_cast<size_t*>(ptr - sizeof(size_t)))};
+  Node* node{reinterpret_cast<Node*>(ptr - sizeof(Node) - padding)};
+
+  size_t block_size{node->size};
 
   Node* current{head};
   Node* previous{};
 
   while (current != nullptr) {
-    if (reinterpret_cast<std::byte*>(current) > ptr) {
+    if (current > node) {
       break;
     }
-
     previous = current;
     current = current->next;
   }
 
-  std::byte* block_start{ptr - sizeof(Header) - header->padding};
-  std::byte* block_end{block_start + header->block_size};
+  std::byte* block_start{reinterpret_cast<std::byte*>(node)};
+  std::byte* block_end{block_start + block_size + sizeof(Node)};
   std::byte* current_start{};
   std::byte* previous_end{};
 
   if (previous) {
-    previous_end = reinterpret_cast<std::byte*>(previous) + previous->size + sizeof(Node);
+    previous_end =
+        reinterpret_cast<std::byte*>(previous) + previous->size + sizeof(Node);
   }
   if (current) {
-    current_start = reinterpret_cast<std::byte*>(current) + sizeof(Node);
+    current_start = reinterpret_cast<std::byte*>(current);
   }
 
   if (previous_end == block_start && current_start == block_end) {
-    previous->size += header->block_size + sizeof(Node) + current->size;
+    previous->size += block_size + sizeof(Node) + current->size + sizeof(Node);
     previous->next = current->next;
 
   } else if (previous_end == block_start) {
-    previous->size += header->block_size + sizeof(Node);
+    previous->size += block_size + sizeof(Node);
 
   } else if (current_start == block_end) {
-    Node* new_node{reinterpret_cast<Node*>(ptr - sizeof(Header) - header->padding)};
-    new_node->size = header->block_size + sizeof(Node) + current->size;
-    new_node->next = current->next;
-    handle_links(previous, new_node);
+    node->size = block_size + current->size + sizeof(Node);
+    node->next = current->next;
+    handle_links(previous, node);
 
   } else {
-    Node* new_node{reinterpret_cast<Node*>(ptr - sizeof(Header) - header->padding)};
-    new_node->size = header->block_size;
-    new_node->next = current;
-    handle_links(previous, new_node);
+    node->size = block_size;
+    node->next = current;
+    handle_links(previous, node);
   }
 
-  used -= header->block_size;
+  used -= block_size;
 }
 
 template <size_t S, BufferType B, FitStrategy F>
@@ -159,14 +158,13 @@ void FreeListAllocator<S, B, F>::reset() noexcept {
 
 template <size_t S, BufferType B, FitStrategy F>
 size_t FreeListAllocator<S, B, F>::get_used() noexcept {
-    return used;
+  return used;
 }
 
 template <size_t S, BufferType B, FitStrategy F>
 size_t FreeListAllocator<S, B, F>::get_free() noexcept {
-    return capacity - used;
+  return capacity - used;
 }
-
 
 //////////////////////
 // type-safe helpers
@@ -218,57 +216,65 @@ void FreeListAllocator<S, B, F>::destroy(T* ptr) noexcept {
 //////////////////////
 
 template <size_t S, BufferType B, FitStrategy F>
-std::pair<Node*, Node*> FreeListAllocator<S, B, F>::find_first_fit(
-    size_t size, size_t alignment) noexcept
+Placement FreeListAllocator<S, B, F>::find_first_fit(size_t size,
+                                                     size_t alignment) noexcept
   requires(F == FitStrategy::FIRST)
 {
   Node* current{head};
   Node* previous{};
 
   while (current != nullptr) {
-    auto [aligned_block, padding] =
-        get_allocation_requirements(current, size, alignment);
-    size_t required_space{size + padding};
+    uintptr_t block{reinterpret_cast<uintptr_t>(current) + sizeof(Node) +
+                    sizeof(size_t)};
+    uintptr_t aligned{align_forward(block, alignment)};
+    size_t padding{aligned -
+                   (reinterpret_cast<uintptr_t>(current) + sizeof(Node))};
+    size_t required{size + padding};
 
-    if (current->size >= required_space) {
-      return {previous, current};
+    if (current->size >= required) {
+      return Placement{previous, current, required, padding};
     }
 
     previous = current;
     current = current->next;
   }
 
-  return {nullptr, nullptr};
+  return {nullptr, nullptr, 0, 0};
 }
 
 template <size_t S, BufferType B, FitStrategy F>
-std::pair<Node*, Node*> FreeListAllocator<S, B, F>::find_best_fit(
-    size_t size, size_t alignment) noexcept
+Placement FreeListAllocator<S, B, F>::find_best_fit(size_t size,
+                                                    size_t alignment) noexcept
   requires(F == FitStrategy::BEST)
 {
   size_t min_diff{SIZE_MAX};
-  Node* best_fit{};
-  Node* prev_best_fit{};
+  Placement best{nullptr, nullptr, 0, 0};
 
   Node* current{head};
   Node* previous{};
 
   while (current != nullptr) {
-    auto [aligned_block, padding] =
-        get_allocation_requirements(current, size, alignment);
-    size_t required_space{size + padding};
+    uintptr_t block{reinterpret_cast<uintptr_t>(current) + sizeof(Node) +
+                    sizeof(size_t)};
+    uintptr_t aligned{align_forward(block, alignment)};
+    size_t padding{aligned -
+                   (reinterpret_cast<uintptr_t>(current) + sizeof(Node))};
+    size_t required{size + padding};
 
-    if (current->size >= required_space) {
-      size_t diff{current->size - required_space};
+    if (current->size >= required) {
+      size_t diff{current->size - required};
 
       if (diff == 0) {
-        return {previous, current};
+        return Placement{previous, current, required, padding};
       }
 
       if (diff < min_diff) {
         min_diff = diff;
-        best_fit = current;
-        prev_best_fit = previous;
+
+        best.previous = previous;
+        best.current = current;
+        best.required = required;
+        best.padding = padding;
       }
     }
 
@@ -276,24 +282,7 @@ std::pair<Node*, Node*> FreeListAllocator<S, B, F>::find_best_fit(
     current = current->next;
   }
 
-  return {prev_best_fit, best_fit};
-}
-
-template <size_t S, BufferType B, FitStrategy F>
-std::pair<uintptr_t, size_t>
-FreeListAllocator<S, B, F>::get_allocation_requirements(
-    Node* current, size_t size, size_t alignment) noexcept {
-  uintptr_t block{reinterpret_cast<uintptr_t>(current) + sizeof(Node)};
-  size_t effective_alignment{std::max(alignment, alignof(Node))};
-  size_t aligned_block{align_forward(block, effective_alignment)};
-  size_t padding{aligned_block - block};
-
-if (padding < sizeof(Header)) {
-  aligned_block += effective_alignment;
-  padding += effective_alignment;
-}
-
-  return {aligned_block, padding};
+  return best;
 }
 
 template <size_t S, BufferType B, FitStrategy F>
