@@ -24,7 +24,7 @@ BuddyAllocator<S, B>::BuddyAllocator()
 }
 
 template <size_t S, BufferType B>
-BuddyAllocator<S, B>::BuddyAllocator(std::span<std::byte, S> buf)
+BuddyAllocator<S, B>::BuddyAllocator(std::array<std::byte, S>& buf)
   requires(S > 0 && (S & (S - 1)) == 0 && B == BufferType::EXTERNAL)
     : buffer(buf.data()), data(buf.data()), capacity(buf.size()) {
   Block* block{reinterpret_cast<Block*>(data)};
@@ -112,6 +112,62 @@ void BuddyAllocator<S, B>::deallocate(std::byte* ptr) noexcept {
   block->next = free_blocks[level];
   free_blocks[level] = block;
 }
+
+template <size_t S, BufferType B>
+void BuddyAllocator<S, B>::reset() noexcept {
+  bit_map.reset();
+  free_blocks = {};
+
+  Block* block{reinterpret_cast<Block*>(data)};
+  block->next = nullptr;
+  block->level = max_level;
+  free_blocks[max_level] = block;
+}
+
+//////////////////////
+// type-safe helpers
+//////////////////////
+
+template <size_t S, BufferType B>
+template <typename T>
+T* BuddyAllocator<S, B>::allocate(size_t count) noexcept {
+  if (count > SIZE_MAX / sizeof(T)) {
+    return nullptr;
+  }
+
+  return reinterpret_cast<T*>(allocate(sizeof(T) * count));
+}
+
+template <size_t S, BufferType B>
+template <typename T>
+void BuddyAllocator<S, B>::deallocate(T* ptr) noexcept {
+  deallocate(reinterpret_cast<std::byte*>(ptr));
+}
+
+template <size_t S, BufferType B>
+template <typename T, typename... Args>
+T* BuddyAllocator<S, B>::emplace(Args&&... args) {
+  std::byte* ptr{allocate(sizeof(T))};
+  if (!ptr) {
+    return nullptr;
+  }
+
+  return std::construct_at(reinterpret_cast<T*>(ptr),
+                           std::forward<Args>(args)...);
+}
+
+template <size_t S, BufferType B>
+template <typename T>
+void BuddyAllocator<S, B>::destroy(T* ptr) noexcept {
+  // asymmetric, does not deallocate (only reset does)
+  if (ptr) {
+    std::destroy_at(ptr);
+  }
+}
+
+//////////////////////
+// helpers
+//////////////////////
 
 template <size_t S, BufferType B>
 Block* BuddyAllocator<S, B>::get_buddy(Block* block,

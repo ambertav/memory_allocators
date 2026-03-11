@@ -26,7 +26,7 @@ class BuddyAllocator {
     requires(S > 0 && (S & (S - 1)) == 0 && B == BufferType::HEAP);
   explicit BuddyAllocator()
     requires(S > 0 && (S & (S - 1)) == 0 && B == BufferType::STACK);
-  explicit BuddyAllocator(std::span<std::byte, S> buf)
+  explicit BuddyAllocator(std::array<std::byte, S>& buf)
     requires(S > 0 && (S & (S - 1)) == 0 && B == BufferType::EXTERNAL);
   ~BuddyAllocator() noexcept;
 
