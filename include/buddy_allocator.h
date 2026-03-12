@@ -40,6 +40,9 @@ class BuddyAllocator {
   void deallocate(std::byte* ptr) noexcept;
   void reset() noexcept;
 
+  size_t get_used() noexcept;
+  size_t get_free() noexcept;
+
   //////////////////////
   // type-safe helpers
   //////////////////////
@@ -60,9 +63,10 @@ class BuddyAllocator {
 
   std::conditional_t<B == BufferType::STACK, std::array<std::byte, S>,
                      std::byte*>
-      buffer{};
-  std::byte* data{};
+      buffer;
+  std::byte* data;
   size_t capacity;
+  size_t used;
 
   static constexpr size_t max_level{std::bit_width(S / sizeof(Block)) - 1};
   std::bitset<S / sizeof(Block)> bitmap{};

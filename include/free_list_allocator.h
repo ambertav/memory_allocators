@@ -76,11 +76,11 @@ class FreeListAllocator {
 
   std::conditional_t<B == BufferType::STACK, std::array<std::byte, S>,
                      std::byte*>
-      buffer{};
-  std::byte* data{};
+      buffer;
+  std::byte* data;
   size_t capacity;
   size_t used;
-  Node* head{};
+  Node* head;
 };
 }  // namespace allocator
 

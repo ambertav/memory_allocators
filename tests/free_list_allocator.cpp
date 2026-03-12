@@ -5,13 +5,6 @@
 #include <memory>
 #include <span>
 
-/*
-Tests that carry over almost unchanged: BasicAllocation, AlignsCorrectly,
-AlignmentsPadsToCreateGaps, ReturnsNullptrWhenOutOfMemory,
-InvalidAlignmentReturnsNullptr, TypedAllocateSucceeds,
-EmplaceAllocatesAndCreatesInPlace, DestroyCallsDestructor.
-*/
-
 namespace allocator::tests {
 template <typename Allocator>
 class FreeListAllocatorTypedTest : public ::testing::Test {
@@ -179,7 +172,7 @@ TYPED_TEST(FreeListAllocatorTypedTest, TypedAllocateSucceeds) {
   int* ptr{this->alloc->template allocate<int>(n)};
   ASSERT_NE(ptr, nullptr);
 
-  EXPECT_EQ(reinterpret_cast<uintptr_t>(ptr) & alignof(int), 0);
+  EXPECT_EQ(reinterpret_cast<uintptr_t>(ptr) % alignof(int), 0);
 
   for (int i{}; i < n; ++i) {
     ptr[i] = i;

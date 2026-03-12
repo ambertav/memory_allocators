@@ -48,8 +48,8 @@ class LinearAllocator {
  private:
   std::conditional_t<B == BufferType::STACK, std::array<std::byte, S>,
                      std::byte*>
-      buffer{};
-  std::byte* data{};
+      buffer;
+  std::byte* data;
   size_t capacity;
   size_t offset;
   size_t previous_offset;
