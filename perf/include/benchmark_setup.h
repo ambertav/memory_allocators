@@ -35,7 +35,14 @@ template <typename Allocator>
 inline void BM_Allocation(::benchmark::State& state) {
   Setup<Allocator> setup{};
   for (auto _ : state) {
-    std::byte* ptr{setup.alloc->allocate(64, 8)};
+    std::byte* ptr{};
+
+    if constexpr (requires { setup.alloc->allocate(64, 8); }) {
+      ptr = setup.alloc->allocate(64, 8);
+    } else {
+      ptr = setup.alloc->allocate(64);
+    }
+
     ::benchmark::DoNotOptimize(ptr);
   }
   state.SetItemsProcessed(state.iterations());

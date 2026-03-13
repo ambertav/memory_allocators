@@ -18,6 +18,7 @@ using FreeListExternalBest =
 //////////////////////////////
 // allocation benchmarks
 //////////////////////////////
+
 BENCHMARK(BM_Allocation<FreeListHeapFirst>)->Name("BM_Allocation/FreeList/Heap/FirstFit");
 BENCHMARK(BM_Allocation<FreeListHeapBest>)->Name("BM_Allocation/FreeList/Heap/BestFit");
 
@@ -30,6 +31,7 @@ BENCHMARK(BM_Allocation<FreeListExternalBest>)->Name("BM_Allocation/FreeList/Ext
 //////////////////////////////
 // emplace benchmarks
 //////////////////////////////
+
 BENCHMARK(BM_Emplace<FreeListHeapFirst>)->Name("BM_Emplace/FreeList/Heap/FirstFit");
 BENCHMARK(BM_Emplace<FreeListHeapBest>)->Name("BM_Emplace/FreeList/Heap/BestFit");
 
