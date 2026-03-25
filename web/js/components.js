@@ -7,7 +7,7 @@ class Navigation extends HTMLElement {
     const current = window.location.pathname;
 
     const isActive = (href) => {
-      if (href === '/index.html' || href === '/') {
+      if (href === 'index.html' || href === '/') {
         return current == '/' || current.endsWith('index.html');
       }
 
@@ -17,18 +17,18 @@ class Navigation extends HTMLElement {
     this.innerHTML = `
         <nav>
         <ul class="links">
-          <li><a class="${isActive('index.html') ? 'active' : ''}" href="index.html">Visualizer</a></li>
+          <li><a class="${isActive('index.html') ? 'active' : ''}" href="/index.html">Visualizer</a></li>
+          <li><a class="${isActive('about.html') ? 'active' : ''}" href="/about.html">About</a></li>
           <li class="dropdown">
             <button class="dropdown-trigger ${current.includes('docs') ? 'active' : ''}">
-              Docs <span>▾</span>
+              Documentation <span>▾</span>
             </button>
             <ul class="dropdown-menu">
-              <li><a href="docs/linear.html">Linear</a></li>
-              <li><a href="docs/freelist.html">Free List</a></li>
-              <li><a href="docs/buddy.html">Buddy</a></li>
+              <li><a href="/docs/linear.html">Linear</a></li>
+              <li><a href="/docs/freelist.html">Free List</a></li>
+              <li><a href="/docs/buddy.html">Buddy</a></li>
             </ul>
           </li>
-          <li><a class="${isActive('about.html') ? 'active' : ''}" href="about.html">About</a></li>
         </ul>
       </nav>
     `;
@@ -37,8 +37,8 @@ class Navigation extends HTMLElement {
     const menu = this.querySelector('.dropdown-menu');
 
     trigger.addEventListener('click', (evt) => {
-      evt.stopPropgation();
-      menu.classListt.toggle('open');
+      evt.stopPropagation();
+      menu.classList.toggle('open');
       trigger.classList.toggle('open');
     });
 

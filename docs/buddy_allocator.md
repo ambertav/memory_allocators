@@ -52,9 +52,9 @@ Reclaims the allocation at `ptr` without calling a destructor. Automatically coa
 void reset() noexcept
 ```
 
-Resets the allocator, reclaiming all memory for reuse. Invalidates all previously allocated pointers without calling destructors. For non-trivial types, consider calling `destroy<T>` before resetting.
+Resets the allocator, reclaiming all memory for reuse. Invalidates all previously allocated pointers without calling destructors. For non-trivial types, consider calling `destroy<T>()` before resetting.
 
-### Diagnostics
+### Metrics
 
 ```cpp
 size_t get_used() noexcept
@@ -89,14 +89,14 @@ template <typename T, typename... Args>
 [[nodiscard]] T* emplace(Args&&... args)
 ```
 
-Allocates space for type `T` and constructs an object in-place using constructor arguments `args` and `std::construct_at`. Returns a pointer to the constructed object, or `nullptr` if allocation fails.
+Allocates space for type `T` and constructs an object in-place using constructor arguments `args` and `std::construct_at()`. Returns a pointer to the constructed object, or `nullptr` if allocation fails.
 
 ```cpp
 template <typename T>
 void destroy(T* ptr) noexcept
 ```
 
-Calls destructor on the object at `ptr` via `std::destroy_at`. Only destorys the object and does **not** deallocate memory. Memory can only be reclaimed via `deallocate<T>(ptr)` or `reset()`.
+Calls destructor on the object at `ptr` via `std::destroy_at()`. Only destorys the object and does **not** deallocate memory. Memory can only be reclaimed via `deallocate<T>()` or `reset()`.
 
 ## Usage
 

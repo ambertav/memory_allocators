@@ -53,7 +53,7 @@ void reset() noexcept
 
 Resets the allocator, reclaiming all memory for reuse. Invalidates all previously allocated pointers without calling destructors. For non-trivial types, consider calling `destroy<T>` before resetting.
 
-### Diagnostics
+### Metrics
 
 ```cpp
 size_t get_used() noexcept
@@ -81,22 +81,22 @@ template <typename T>
 void deallocate(T* ptr) noexcept
 ```
 
-Typed deallocation. Reclaims the `ptr` to the free list without calling a destructor. For non-trivial types, consider calling `destroy<T>` before deallocation.
+Typed deallocation. Reclaims the `ptr` to the free list without calling a destructor. For non-trivial types, consider calling `destroy<T>()` before deallocation.
 
 ```cpp
 template <typename T, typename... Args>
 [[nodiscard]] T* emplace(Args&&... args)
 ```
 
-Allocates space for type `T` and constructs an object in-place using constructor arguments `args` and `std::construct_at`. Returns pointer to the constructed object, or `nullptr` if allocation fails.
+Allocates space for type `T` and constructs an object in-place using constructor arguments `args` and `std::construct_at()`. Returns pointer to the constructed object, or `nullptr` if allocation fails.
 
 ```cpp
 template <typename T>
 void destroy(T* ptr) noexcept
 ```
 
-Calls destructor on object at `ptr` via `std::destroy_at`. Only destorys the object and does **not** deallocate memory. Memory can only be reclaimed on
-`deallocate<T>(ptr)` or `reset()`.
+Calls destructor on object at `ptr` via `std::destroy_at()`. Only destorys the object and does **not** deallocate memory. Memory can only be reclaimed via
+`deallocate<T>()` or `reset()`.
 
 ## Usage
 ```cpp
@@ -126,7 +126,7 @@ stack_alloc.deallocate(buffer);
 std::array<std::byte, 2048> my_buffer{};
 allocator::FreeListAllocator<0, allocator::BufferType::EXTERNAL, allocator::FitStrategy::FIRST> ext_alloc{my_buffer};
 
-// Diagnostics
+// Metrics
 size_t in_use {heap_alloc.get_used()};
 size_t available {heap_alloc.get_free()};
 ```
