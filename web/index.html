@@ -5,11 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="styles.css" />
     <script src="js/components.js" defer></script>
+    <script src="js/script.js" defer></script>
     <title>Memory Allocators</title>
   </head>
   <body>
     <site-nav></site-nav>
-    <main>Hello World</main>
+    <main>
+      <header>
+        <h2>Visualizer</h2>
+      </header>
+
+      <section class="allocator-selection">
+        <button class="toggle" data-type="linear">Linear</button>
+        <button class="toggle" data-type="free-list">Free List</button>
+        <button class="toggle" data-type="buddy">Buddy</button>
+      </section>
+
+      <section class="visualizer">
+        <h3 class="title"></h3>
+        <div id="allocator" class="bar"></div>
+      </section>
+
+      <section class="metrics">
+        <h4>Metrics</h4>
+      </section>
+      <section class="controls">
+        <h4>Controls</h4>
+      </section>
+    </main>
     <site-footer></site-footer>
   </body>
 </html>

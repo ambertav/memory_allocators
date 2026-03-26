@@ -61,7 +61,8 @@ nav li {
     margin: 0;
 }
 
-.active {
+.active,
+.selected {
     color: var(--color-primary);
 }
 
@@ -69,7 +70,6 @@ main {
     flex: 1;
     font-size: 1.1rem;
 }
-
 
 h1,
 h2,
@@ -125,31 +125,70 @@ pre code {
     font-size: 1rem;
 }
 
-    section {
-      padding-top: 1.75rem;
-      border-top: 1px solid #e5e5e5;
-      margin-top: 1.75rem;
-    }
- 
-    .method {
-      padding-bottom: 1.25rem;
-      margin-bottom: 1.75rem;
-      border-bottom: 1px solid #f0f0f0;
-    }
+section {
+    padding-top: 1.75rem;
+    border-top: 1px solid #e5e5e5;
+    margin-top: 1.75rem;
+}
 
-    .method ul {
-        display: block;
-    }
 
-    .method li {
-        line-height: 1.5;
-    }
- 
-    .method:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-      padding-bottom: 0;
-    }
+.allocator-selection {
+    display: flex;
+    justify-content: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.toggle {
+    font-family: "Kode Mono", monospace;
+    background: #f6f6f6;
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+    border: none;
+    letter-spacing: 0.07em;
+    cursor: pointer;
+    border-radius: 0.5rem;
+}
+
+/* Base */
+#allocator.allocator {
+    width: 100%;
+    min-height: 200px;
+}
+
+/* BAR MODE */
+#allocator.bar {
+    display: flex;
+    align-items: center;
+    height: 60px;
+}
+
+/* TREE MODE */
+#allocator.tree {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.method {
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.75rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.method ul {
+    display: block;
+}
+
+.method li {
+    line-height: 1.5;
+}
+
+.method:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
 
 #design,
 #api,
