@@ -170,7 +170,8 @@ std::string BuddyAllocator<S, B>::get_state() const noexcept {
       }
       blocks += "{\"ptr\":" + std::to_string(start) +
                 ",\"offset\":" + std::to_string(start) +
-                ",\"size\":" + std::to_string(size) + ",\"status\":\"used\"}";
+                ",\"size\":" + std::to_string(size) +
+                ",\"header\":0,\"status\":\"used\"}";
     }
 
     for (size_t i{}; i <= max_level; ++i) {
@@ -186,7 +187,8 @@ std::string BuddyAllocator<S, B>::get_state() const noexcept {
 
         blocks += "{\"ptr\":" + std::to_string(start) +
                   ",\"offset\":" + std::to_string(start) +
-                  ",\"size\":" + std::to_string(size) + ",\"status\":\"free\"}";
+                  ",\"size\":" + std::to_string(size) +
+                  ",\"header\":0,\"status\":\"free\"}";
         block = block->next;
       }
     }

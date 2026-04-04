@@ -115,7 +115,8 @@ std::string LinearAllocator<S, B>::get_state() const noexcept {
       }
       blocks += "{\"ptr\":" + std::to_string(start) +
                 ",\"offset\":" + std::to_string(start) +
-                ",\"size\":" + std::to_string(size) + ",\"status\":\"used\"}";
+                ",\"size\":" + std::to_string(size) +
+                ",\"header\":0,\"status\":\"used\"}";
     }
 
     if (offset < S) {
@@ -124,7 +125,7 @@ std::string LinearAllocator<S, B>::get_state() const noexcept {
       }
       blocks += "{\"ptr\":null,\"offset\":" + std::to_string(offset) +
                 ",\"size\":" + std::to_string(S - offset) +
-                ",\"status\":\"free\"}";
+                ",\"header\":0,\"status\":\"free\"}";
     }
 
     return "{\"totalBytes\":" + std::to_string(S) + ",\"blocks\":[" + blocks +

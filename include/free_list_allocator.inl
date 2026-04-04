@@ -183,7 +183,9 @@ std::string FreeListAllocator<S, B, F>::get_state() const noexcept {
 
       blocks += "{\"ptr\":" + std::to_string(ptr) +
                 ",\"offset\":" + std::to_string(start) +
-                ",\"size\":" + std::to_string(size) + ",\"status\":\"used\"}";
+                ",\"size\":" + std::to_string(size) +
+                ",\"header\":" + std::to_string(ptr - start) +
+                ",\"status\":\"used\"}";
     }
 
     Node* node{head};
@@ -196,13 +198,16 @@ std::string FreeListAllocator<S, B, F>::get_state() const noexcept {
       }
       blocks += "{\"ptr\":null,\"offset\":" + std::to_string(start) +
                 ",\"size\":" + std::to_string(node->size) +
+                ",\"header\":" + std::to_string(sizeof(Node)) +
                 ",\"status\":\"free\"}";
 
       node = node->next;
     }
 
-    return "{\"totalBytes\":" + std::to_string(S) + ",\"blocks\":[" + blocks +
-           "],\"metrics\":{\"used\":" + std::to_string(used) +
+    return "{\"totalBytes\":" + std::to_string(S) +
+           ",\"nodeSize\":" + std::to_string(sizeof(Node)) +
+           ",\"ptrSize\":" + std::to_string(sizeof(Node*)) + ",\"blocks\":[" +
+           blocks + "],\"metrics\":{\"used\":" + std::to_string(used) +
            ",\"free\":" + std::to_string(S - used) + ",\"fragmentation\":0}}";
 
   } catch (...) {

@@ -173,6 +173,12 @@ section {
     align-items: center;
 }
 
+.block.header {
+    background: #84cc16;
+    border-left: 1.5px solid var(--color-primary);
+    border-right: 1.5px solid var(--color-primary);
+}
+
 .block.used {
     background: var(--color-secondary);
     color: var(--color-accent);

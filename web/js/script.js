@@ -64,14 +64,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     allocator.className = '';
 
     state.blocks.forEach((block) => {
+      if (block.header > 0) {
+        const header = document.createElement('div');
+        header.className = 'block header';
+        header.style.left = `${(block.offset / state.totalBytes) * 100}%`;
+        header.style.width = `${(block.header / state.totalBytes) * 100}%`;
+        allocator.appendChild(header);
+      }
+
       const element = document.createElement('div');
       element.className = `block ${block.status}`;
-      element.style.left = `${(block.offset / state.totalBytes) * 100}%`;
+      element.style.left = `${((block.offset + block.header) / state.totalBytes) * 100}%`;
       element.style.width = `${(block.size / state.totalBytes) * 100}%`;
 
       const text = document.createElement('span');
       text.innerHTML = `${block.size} B`;
-      text.style.fontSize = `0.9rem`;
+      text.style.fontSize = '0.9rem';
       element.appendChild(text);
 
       allocator.appendChild(element);
@@ -191,10 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (resizeButton) {
       resizeButton.onclick = () => {
-        const size = parseInt(
-          document.getElementById('resize-size').value,
-          10,
-        );
+        const size = parseInt(document.getElementById('resize-size').value, 10);
         const previous_ptr = [...pointers.keys()].at(-1);
         const new_ptr = allocators[type].resizeLast(previous_ptr, size);
         if (new_ptr === 0) {
@@ -202,7 +207,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           return;
         }
 
-pointers.set(new_ptr, size);
+        pointers.set(new_ptr, size);
         syncPointerDropdown();
         renderAllocator(type);
       };
