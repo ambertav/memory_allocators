@@ -56,13 +56,13 @@ Resets the allocator, reclaiming all memory for reuse. Invalidates all previousl
 ### Metrics
 
 ```cpp
-size_t get_used() noexcept
+size_t get_used() const noexcept
 ```
 
 Returns the number of bytes currently allocated, including alignment padding.
 
 ```cpp
-size_t get_free() noexcept
+size_t get_free() const noexcept
 ```
 
 Returns the number of bytes not yet allocated.
