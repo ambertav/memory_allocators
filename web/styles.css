@@ -200,6 +200,36 @@ section {
     border-right: none;
 }
 
+#legend {
+    display: none;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+}
+
+#legend.view {
+    display: flex;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.legend-swatch {
+    position: relative;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 0.125rem;
+    flex-shrink: 0;
+}
+
+.block.legend-swatch {
+    border: none;
+}
+
 .metrics ul {
     display: flex;
     flex-direction: column;

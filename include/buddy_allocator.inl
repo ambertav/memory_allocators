@@ -98,6 +98,10 @@ std::byte* BuddyAllocator<S, B>::allocate(size_t size) noexcept {
   levels[index] = static_cast<uint8_t>(level);
   used += (size_t{1} << level) * sizeof(Block);
 
+  uintptr_t ptr_offset{
+      static_cast<uintptr_t>(reinterpret_cast<std::byte*>(block) - data)};
+  allocations[ptr_offset] = (size_t{1} << level) * sizeof(Block);
+
   return reinterpret_cast<std::byte*>(block);
 }
 
@@ -141,6 +145,9 @@ void BuddyAllocator<S, B>::deallocate(std::byte* ptr) noexcept {
     free_blocks[level]->previous = block;
   }
   free_blocks[level] = block;
+
+  uintptr_t ptr_offset{static_cast<uintptr_t>(ptr - data)};
+  allocations.erase(ptr_offset);
 }
 
 template <size_t S, BufferType B>

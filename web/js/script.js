@@ -52,13 +52,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderAllocator(type) {
     const state = JSON.parse(allocators[type].getState());
 
-    console.log(state);
     renderBlocks(type, state);
     renderMetrics(type, state.metrics);
   }
 
   function renderBlocks(type, state) {
     const allocator = document.getElementById('allocator');
+    const legend = document.getElementById('legend');
 
     allocator.innerHTML = '';
     allocator.className = '';
@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     allocator.classList.add('view');
+    legend.classList.add('view');
   }
 
   function renderMetrics(type, metrics) {
