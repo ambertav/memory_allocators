@@ -132,7 +132,6 @@ section {
     margin-top: 1.75rem;
 }
 
-
 .allocator-selection {
     display: flex;
     justify-content: flex-start;
@@ -230,6 +229,18 @@ section {
     border: none;
 }
 
+#note {
+    display: none;
+}
+
+#note.view {
+    display: block;
+    align-self: center;
+    justify-self: center;
+    padding-top: 2rem;
+    font-size: 0.7rem;
+}
+
 .metrics ul {
     display: flex;
     flex-direction: column;
@@ -317,10 +328,20 @@ section {
 
 #design,
 #api,
-#usage {
+#usage,
+#dependencies,
+#future {
     padding-top: 1.5rem;
     border-top: 1px solid #e5e5e5;
     margin-top: 1.5rem;
+}
+
+.docs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-inline-start: 2rem;
+    list-style-type: disc;
 }
 
 footer {

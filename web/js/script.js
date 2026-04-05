@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderBlocks(type, state) {
     const allocator = document.getElementById('allocator');
     const legend = document.getElementById('legend');
+    const note = document.getElementById('note');
 
     allocator.innerHTML = '';
     allocator.className = '';
@@ -87,6 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     allocator.classList.add('view');
     legend.classList.add('view');
+    note.classList.add('view');
   }
 
   function renderMetrics(type, metrics) {
