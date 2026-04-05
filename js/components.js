@@ -5,28 +5,34 @@
 class Navigation extends HTMLElement {
   connectedCallback() {
     const current = window.location.pathname;
+    const depth = current.split('/').filter(Boolean).length;
+    const isDocsPage = current.includes('/docs/');
+    const root = isDocsPage ? '../' : '';
 
     const isActive = (href) => {
-      if (href === 'index.html' || href === '/') {
-        return current == '/' || current.endsWith('index.html');
+      if (href === 'index.html') {
+        return (
+          current === '/' ||
+          current.endsWith('index.html') ||
+          current.endsWith('/memory-allocators/')
+        );
       }
-
       return current.includes(href.replace('.html', ''));
     };
 
     this.innerHTML = `
         <nav>
         <ul class="links">
-          <li><a class="${isActive('index.html') ? 'active' : ''}" href="index.html">Visualizer</a></li>
-          <li><a class="${isActive('about.html') ? 'active' : ''}" href="about.html">About</a></li>
+          <li><a class="${isActive('index.html') ? 'active' : ''}" href="${root}index.html">Visualizer</a></li>
+          <li><a class="${isActive('about.html') ? 'active' : ''}" href="${root}about.html">About</a></li>
           <li class="dropdown">
             <button class="dropdown-trigger ${current.includes('docs') ? 'active' : ''}">
               Documentation <span>▾</span>
             </button>
             <ul class="dropdown-menu">
-              <li><a href="docs/linear.html">Linear</a></li>
-              <li><a href="docs/freelist.html">Free List</a></li>
-              <li><a href="docs/buddy.html">Buddy</a></li>
+              <li><a href="${root}docs/linear.html">Linear</a></li>
+              <li><a href="${root}docs/freelist.html">Free List</a></li>
+              <li><a href="${root}docs/buddy.html">Buddy</a></li>
             </ul>
           </li>
         </ul>
