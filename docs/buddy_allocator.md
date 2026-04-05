@@ -8,9 +8,9 @@ An allocator that supports power-of-two allocations and deallocations with autom
 
 ## Design
 
-Buddy allocator manages memory within a contiguous buffer by maintaining a set of free lists, one per level, where each level corresponds to a power-of-two block size. The minimum block size is dependent on `sizeof(Block)`, which stores the doubly linked list pointers used to maintain the free lists.
+The `BuddyAllocator` manages memory within a contiguous buffer by maintaining a set of free lists, one per level, where each level corresponds to a power-of-two block size. The minimum block size is dependent on `sizeof(Block)`, which stores the doubly linked list pointers used to maintain the free lists.
 
-On allocation, the requested size is rounded up to the nearest power of two. If no block exists at the required level, a larger block is split into two buddies, with one inserted into the free list and the other used to satisfy the request. On deallocation, the block is returned to its free list and recursively coalesced with its buddy, reducing fragmentation.
+On allocation, the requested size is rounded up to the nearest power-of-two. If no block exists at the required level, a larger block is split into two buddies, with one inserted into the free list and the other used to satisfy the request. On deallocation, the block is returned to its free list and recursively coalesced with its buddy, reducing fragmentation.
 
 Block levels are tracked in a flat `levels` array indexed by minimum-block offset, and a bitmap tracks which blocks are currently allocated, allowing O(1) buddy lookup and validity checking while coalescing.
 
@@ -18,7 +18,7 @@ The allocator allows for a `BufferType` argument, in which the caller can specif
 
 ## Limitations
 
-All allocations are rounded up to the nearest power of two, which may cause internal fragmentation for non-power-of-two allocation sizes. The minimum allocation size is `sizeof(Block)`, as the block metadata is stored within the free memory itself. The total capacity `S` must be a power of two greater than zero.
+All allocations are rounded up to the nearest power-of-two, which may cause internal fragmentation for non power-of-two allocation sizes. The minimum allocation size is `sizeof(Block)`, as the block metadata is stored within the free memory itself. The total capacity `S` must be a power-of-two greater than zero.
 
 ## API Reference
 
@@ -40,7 +40,7 @@ Creates a buddy allocator with capacity `S` bytes. Behavior depends on `BufferTy
 [[nodiscard]] std::byte* allocate(size_t size) noexcept
 ```
 
-Allocates a block of at least `size` bytes, rounded up to the nearest power of two. Searches the free lists and splits larger blocks as needed. Returns a pointer to allocated memory, or `nullptr` on failure (insufficient space).
+Allocates a block of at least `size` bytes, rounded up to the nearest power-of-two. Searches the free lists and splits larger blocks as needed. Returns a pointer to allocated memory, or `nullptr` on failure (insufficient space).
 
 ```cpp
 void deallocate(std::byte* ptr) noexcept
@@ -75,7 +75,7 @@ template <typename T>
 [[nodiscard]] T* allocate(size_t count = 1) noexcept
 ```
 
-Typed allocation for `count` number of objects of type `T`. Aligns to `count * sizeof(T)`, rounded up to the nearest power of two. Returns a typed pointer or `nullptr` on failure.
+Typed allocation for `count` number of objects of type `T`. Aligns to `count * sizeof(T)`, rounded up to the nearest power-of-two. Returns a typed pointer or `nullptr` on failure.
 
 ```cpp
 template <typename T>
@@ -136,7 +136,7 @@ size_t available {heap_alloc.get_free()};
 - Requesting sizes equal or close to a power-of-two boundary minimize internal fragmentation
 - Destroy objects manually prior to deallocate if they have non-trivial destructors
 - Call `reset()` to reclaim all memory at once
-- `S` must be a power of two greater than zero
+- `S` must be a power-of-two greater than zero
 - Designed for workloads requiring deterministic allocation time and low fragmentation
 
 ## Performance

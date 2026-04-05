@@ -8,9 +8,9 @@ A bump-pointer allocator for sequential memory allocation. Linear allocators exc
 
 ## Design
 
-Linear allocator is a fast allocator that allots memory by incrementing a pointer through a contiguous, fixed memory buffer. Each allocation advances the pointer forward, making the process O(1) with minimal overhead.
+The `LinearAllocator` is a fast allocator that allots memory by incrementing a pointer through a contiguous, fixed memory buffer. Each allocation advances the pointer forward, making the process O(1) with minimal overhead.
 
-The implementation holds true to the philosophy of linear allocators: interim memory cannot be deallocated or resized. Further, note that the typed helpers `emplace<T>()` and `destroy<T>()` are asymmetric. `emplace<T>()` allocates, constructs, and returns a pointer to the resource, while `destroy<T>()` simply destructs the resource. This is purposeful, as `reset()` remains the only way through which to deallocate memory within the linear allocator. 
+The implementation holds true to the philosophy of linear allocators: interim memory cannot be deallocated or resized. Further, note that the typed helpers `emplace<T>()` and `destroy<T>()` are asymmetric. `emplace<T>()` allocates, constructs, and returns a pointer to the resource, while `destroy<T>()` simply invokes the resource's destructor. This is purposeful, as `reset()` remains the only way through which to deallocate memory within the linear allocator. 
 
 The allocator allows for a `BufferType` argument, in which the caller can specify the type of memory (heap, stack, or external). `BufferType::STACK` uses a fixed-size array stored inline within the allocator object. `BufferType::EXTERNAL` signals a contract in which the allocator will allocate but not own or manage the memory's lifetime. The size of this external buffer must be known at compile time.  When `BufferType` is not specified, the allocator defaults to `BufferType::HEAP`, dynamically allocating memory and managing the cleanup in its destructor. Hence, the copy, copy assignment, move, and move assignment operations are deleted per the rule of 5.
 
@@ -41,7 +41,7 @@ Allocates `size` bytes aligned to `alignment` boundary. Returns pointer to alloc
                                        size_t new_size, size_t alignment) noexcept
 ```
 
-Resizes the most recent allocation, if possible. Returns the same pointer if successful, `nullptr` if the pointer doesn't match the last allocation or if insufficient space remains. Only works on the most recent allocation made.
+Resizes the most recent allocation, if possible. Returns the same pointer if successful, or `nullptr` if the pointer doesn't match the last allocation or if insufficient space remains. Only works on the most recent allocation made.
 
 ```cpp
 void reset() noexcept

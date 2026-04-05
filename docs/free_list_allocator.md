@@ -8,7 +8,7 @@ An allocator that supports allocations and deallocations with automatic coalesci
 
 ## Design
 
-Free list allocator manages memory within a contiguous buffer through the maintenance of a linked list of free memory blocks. Each allocation searches for a free block, splits if necessary, then returns a pointer to the user. On deallocation, the memory is freed, and any free memory blocks are coalesced to reduce fragmentation.
+The `FreeListAllocator` manages memory within a contiguous buffer through the maintenance of a linked list of free memory blocks. Each allocation searches for a free block, splits if necessary, then returns a pointer to the user. On deallocation, the memory is freed, and any free memory blocks are coalesced to reduce fragmentation.
 
 Alignment is handled by inserting padding between the free list block header and the user pointer. The padding value is stored in the `sizeof(size_t)` bytes immediately before the returned pointer. This allows `deallocate()` to recover the header efficiently.
 
@@ -39,7 +39,7 @@ Creates a free list allocator with capacity `S` bytes. Behavior depends on `Buff
 [[nodiscard]] std::byte* allocate(size_t size, size_t alignment) noexcept
 ```
 
-Allocates `size` bytes aligned to `alignment`. Searches the free list using the configured `FitStrategy`, and splits the found block if applicable. Returns a pointer to allocated memory, or `nullptr` on failre (insuffcient space or invalid alignment).
+Allocates `size` bytes aligned to `alignment`. Searches the free list using the configured `FitStrategy`, and splits the found block if applicable. Returns a pointer to allocated memory, or `nullptr` on failure (insuffcient space or invalid alignment).
 
 ```cpp
 void deallocate(std::byte* ptr) noexcept
