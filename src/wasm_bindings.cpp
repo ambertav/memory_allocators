@@ -6,7 +6,7 @@
 
 using namespace allocator;
 constexpr size_t SIZE{1024};
-constexpr size_t ALIGNMENT{16};
+constexpr size_t ALIGNMENT{sizeof(Node)};
 
 using Linear = LinearAllocator<SIZE, BufferType::HEAP>;
 using FreeList = FreeListAllocator<SIZE, BufferType::HEAP, FitStrategy::FIRST>;
