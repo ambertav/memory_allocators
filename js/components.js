@@ -22,8 +22,8 @@ class Navigation extends HTMLElement {
     this.innerHTML = `
         <nav>
         <ul class="links">
-          <li><a class="${isActive('index.html') ? 'active' : ''}" href="${root}index.html">Visualizer</a></li>
-          <li><a class="${isActive('about.html') ? 'active' : ''}" href="${root}about.html">About</a></li>
+          <li><a class="${isActive('index.html') ? 'active' : ''}" href="${root}index.html">About</a></li>
+          <li><a class="${isActive('visualizer.html') ? 'active' : ''}" href="${root}visualizer.html">Visualizer</a></li>
           <li class="dropdown">
             <button class="dropdown-trigger ${current.includes('docs') ? 'active' : ''}">
               Documentation <span>▾</span>
