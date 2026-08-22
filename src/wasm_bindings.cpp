@@ -2,7 +2,7 @@
 
 #include "buddy/buddy_allocator.h"
 #include "free_list/free_list_allocator.h"
-#include "lienar/linear_allocator.h"
+#include "linear/linear_allocator.h"
 #include "pool/pool_allocator.h"
 
 using namespace allocator;

@@ -138,7 +138,7 @@ TYPED_TEST(PoolAllocatorTypedTest, ResetsSuccessfully) {
 }
 
 TYPED_TEST(PoolAllocatorTypedTest, TypedAllocateSucceeds) {
-  int* ptr{this->alloc->template allocate<int>()};
+  int* ptr{this->alloc->template allocate_as<int>()};
   ASSERT_NE(ptr, nullptr);
 
   *ptr = 42;
@@ -146,12 +146,12 @@ TYPED_TEST(PoolAllocatorTypedTest, TypedAllocateSucceeds) {
 }
 
 TYPED_TEST(PoolAllocatorTypedTest, TypedDeallocateSucceeds) {
-  int* ptr1{this->alloc->template allocate<int>()};
+  int* ptr1{this->alloc->template allocate_as<int>()};
   ASSERT_NE(ptr1, nullptr);
 
   this->alloc->template deallocate<int>(ptr1);
 
-  int* ptr2{this->alloc->template allocate<int>()};
+  int* ptr2{this->alloc->template allocate_as<int>()};
   ASSERT_NE(ptr2, nullptr);
 
   EXPECT_EQ(ptr1, ptr2);

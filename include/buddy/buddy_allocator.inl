@@ -239,7 +239,7 @@ size_t BuddyAllocator<S, B, Tr>::get_free() const noexcept {
 
 template <size_t S, BufferType B, Tracking Tr>
 template <typename T>
-T* BuddyAllocator<S, B, Tr>::allocate(size_t count) noexcept {
+T* BuddyAllocator<S, B, Tr>::allocate_as(size_t count) noexcept {
   if (count > SIZE_MAX / sizeof(T)) {
     return nullptr;
   }

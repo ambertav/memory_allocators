@@ -56,7 +56,7 @@ class PoolAllocator {
 
   template <typename T>
     requires(sizeof(T) <= C)
-  [[nodiscard]] T* allocate() noexcept;
+  [[nodiscard]] T* allocate_as() noexcept;
 
   template <typename T>
   void deallocate(T* ptr) noexcept;

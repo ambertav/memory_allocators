@@ -167,7 +167,7 @@ size_t LinearAllocator<S, B, Tr>::get_free() const noexcept {
 
 template <size_t S, BufferType B, Tracking Tr>
 template <typename T>
-T* LinearAllocator<S, B, Tr>::allocate(size_t count) noexcept {
+T* LinearAllocator<S, B, Tr>::allocate_as(size_t count) noexcept {
   if (count > SIZE_MAX / sizeof(T)) {  // check uint overflow
     return nullptr;
   }

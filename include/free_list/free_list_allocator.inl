@@ -244,7 +244,7 @@ size_t FreeListAllocator<S, F, B, Tr>::get_free() const noexcept {
 
 template <size_t S, FitStrategy F, BufferType B, Tracking Tr>
 template <typename T>
-T* FreeListAllocator<S, F, B, Tr>::allocate(size_t count) noexcept {
+T* FreeListAllocator<S, F, B, Tr>::allocate_as(size_t count) noexcept {
   if (count > SIZE_MAX / sizeof(T)) {
     return nullptr;
   }

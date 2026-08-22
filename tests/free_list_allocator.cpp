@@ -170,7 +170,7 @@ TYPED_TEST(FreeListAllocatorTypedTest, InvalidAligmentReturnsNullptr) {
 
 TYPED_TEST(FreeListAllocatorTypedTest, TypedAllocateSucceeds) {
   int n{10};
-  int* ptr{this->alloc->template allocate<int>(n)};
+  int* ptr{this->alloc->template allocate_as<int>(n)};
   ASSERT_NE(ptr, nullptr);
 
   EXPECT_EQ(reinterpret_cast<uintptr_t>(ptr) % alignof(int), 0);
@@ -183,12 +183,12 @@ TYPED_TEST(FreeListAllocatorTypedTest, TypedAllocateSucceeds) {
 
 TYPED_TEST(FreeListAllocatorTypedTest, TypedDeallocateSucceeds) {
   int n{10};
-  int* ptr1{this->alloc->template allocate<int>(n)};
+  int* ptr1{this->alloc->template allocate_as<int>(n)};
   ASSERT_NE(ptr1, nullptr);
 
   this->alloc->template deallocate<int>(ptr1);
 
-  int* ptr2{this->alloc->template allocate<int>(n)};
+  int* ptr2{this->alloc->template allocate_as<int>(n)};
   ASSERT_NE(ptr2, nullptr);
 
   EXPECT_EQ(ptr1, ptr2);

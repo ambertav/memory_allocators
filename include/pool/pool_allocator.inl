@@ -177,8 +177,8 @@ size_t PoolAllocator<S, C, B, Tr>::get_free() const noexcept {
 template <size_t S, size_t C, BufferType B, Tracking Tr>
 template <typename T>
   requires(sizeof(T) <= C)
-T* PoolAllocator<S, C, B, Tr>::allocate() noexcept {
-  return reinterpret_cast<T*>(this->PoolAllocator<S, C, B, Tr>::allocate());
+T* PoolAllocator<S, C, B, Tr>::allocate_as() noexcept {
+  return reinterpret_cast<T*>(allocate());
 }
 
 template <size_t S, size_t C, BufferType B, Tracking Tr>

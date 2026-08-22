@@ -74,7 +74,7 @@ Returns the number of bytes not yet allocated.
 
 ```cpp
 template <typename T>
-[[nodiscard]] T* allocate(size_t count = 1) noexcept
+[[nodiscard]] T* allocate_as(size_t count = 1) noexcept
 ```
 
 Typed allocation for `count` number of objects of type `T`. Aligns to `count * sizeof(T)`, rounded up to the nearest power-of-two. Returns a typed pointer or `nullptr` on failure.

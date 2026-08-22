@@ -80,7 +80,7 @@ Returns the number of bytes not yet allocated.
 ```cpp
 template <typename T>
   requires(sizeof(T) <= C)
-[[nodiscard]] T* allocate() noexcept
+[[nodiscard]] T* allocate_as() noexcept
 ```
 
 Typed allocation for objects of type `T`. Requires that `sizeof(T)` is less than or equal to `C` to ensure the allocation fits within a `Chunk`. Returns a typed pointer or `nullptr` on failure.

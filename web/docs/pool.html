@@ -174,7 +174,7 @@ PoolAllocator()</code></pre>
         <div class="method">
           <pre><code>template &lt;typename T&gt;
     requires(sizeof(T) &lt;= C)
-[[nodiscard]] T* allocate() noexcept</code></pre>
+[[nodiscard]] T* allocate_as() noexcept</code></pre>
           <p>
             Typed allocation for objects of type
             <code>T</code>. Requires that <code>sizeof(T)</code> is less than or

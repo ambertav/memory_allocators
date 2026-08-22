@@ -53,7 +53,7 @@ class BuddyAllocator {
   // type-safe helpers
   //////////////////////
   template <typename T>
-  [[nodiscard]] T* allocate(size_t count = 1) noexcept;
+  [[nodiscard]] T* allocate_as(size_t count = 1) noexcept;
 
   template <typename T>
   void deallocate(T* ptr) noexcept;

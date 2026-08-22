@@ -133,7 +133,7 @@ TYPED_TEST(LinearAllocatorTypedTest, InvalidAlignmentReturnsNullptr) {
 
 TYPED_TEST(LinearAllocatorTypedTest, TypedAllocateSucceeds) {
   int n{10};
-  int* ptr{this->alloc->template allocate<int>(n)};
+  int* ptr{this->alloc->template allocate_as<int>(n)};
   ASSERT_NE(ptr, nullptr);
 
   // verify alignment
