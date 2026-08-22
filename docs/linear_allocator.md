@@ -3,8 +3,8 @@
 A bump-pointer allocator for sequential memory allocation. Linear allocators excel in scenarios with many small, sequential allocations, where individual deallocation is not necessary.
 
 ## Source
-- [Header](../include/linear_allocator.h)
-- [Implementation](../include/linear_allocator.inl)
+- [Header](../include/linear/linear_allocator.h)
+- [Implementation](../include/linear/linear_allocator.inl)
 
 ## Design
 

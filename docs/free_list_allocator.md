@@ -3,8 +3,8 @@
 An allocator that supports allocations and deallocations with automatic coalescing. Free list allocators excel in scenarios requiring variable-size allocations and deallocations.
 
 ## Source
-- [Header](../include/free_list_allocator.h)
-- [Implementation](../include/free_list_allocator.inl)
+- [Header](../include/free_list/free_list_allocator.h)
+- [Implementation](../include/free_list/free_list_allocator.inl)
 
 ## Design
 

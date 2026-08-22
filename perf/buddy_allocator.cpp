@@ -1,4 +1,4 @@
-#include "buddy_allocator.h"
+#include "buddy/buddy_allocator.h"
 
 #include <benchmark/benchmark.h>
 

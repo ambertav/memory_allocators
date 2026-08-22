@@ -1,6 +1,6 @@
-#include "benchmark_setup.h"
 #include <benchmark/benchmark.h>
 
+#include "benchmark_setup.h"
 
 namespace allocator::perf {
 static void BM_Allocation_Malloc(::benchmark::State& state) {

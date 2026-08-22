@@ -3,8 +3,8 @@
 An allocator for fixed-size allocations and deallocations. Pool allocators excel in scenarios involving the frequent allocations and deallocations of many objects of similiar sizes.
 
 ## Source
-- [Header](../include/pool_allocator.h)
-- [Implementation](../include/pool_allocator.inl)
+- [Header](../include/pool/pool_allocator.h)
+- [Implementation](../include/pool/pool_allocator.inl)
 
 ## Design
 

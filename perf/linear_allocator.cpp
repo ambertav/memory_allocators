@@ -1,7 +1,8 @@
-#include "benchmark_setup.h"
-#include "linear_allocator.h"
+#include "linear/linear_allocator.h"
 
 #include <benchmark/benchmark.h>
+
+#include "benchmark_setup.h"
 
 namespace allocator::perf {
 

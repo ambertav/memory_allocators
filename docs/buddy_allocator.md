@@ -3,8 +3,8 @@
 An allocator that supports power-of-two allocations and deallocations with automatic coalescing. Buddy allocators excel in scenarios requiring fast, deterministic allocation with low fragmentation overhead.
 
 ## Source
-- [Header](../include/buddy_allocator.h)
-- [Implementation](../include/buddy_allocator.inl)
+- [Header](../include/buddy/buddy_allocator.h)
+- [Implementation](../include/buddy/buddy_allocator.inl)
 
 ## Design
 
